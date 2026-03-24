@@ -6,6 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { NotesData } from "../page";
 import { Separator } from "@/components/ui/separator";
+import { Plate, usePlateEditor } from "platejs/react";
+import { Editor, EditorContainer } from "@/components/ui/editor";
+import { EditorKit } from "@/components/editor/editor-kit";
 
 export default function NotesEditorPage() {
   return (
@@ -19,7 +22,10 @@ function NotesEditorPageInnerContent() {
   const searchParams = useSearchParams();
   const q = searchParams.get("q");
   const [notes, setNotes] = useState<NotesData>();
-  console.log(notes);
+
+  const editor = usePlateEditor({
+    plugins: EditorKit,
+  });
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
@@ -42,6 +48,22 @@ function NotesEditorPageInnerContent() {
       <div className="flex flex-col gap-2 w-full px-6 md:px-12 lg:px-24">
         <Separator />
       </div>
+
+      <SectionsWrapper className="!py-0">
+        <Plate
+          editor={editor}
+          onChange={({ value }) => {
+            console.log(value);
+          }}
+        >
+          <EditorContainer>
+            <Editor
+              placeholder="Type your amazing content here..."
+              className="!px-4"
+            />
+          </EditorContainer>
+        </Plate>
+      </SectionsWrapper>
     </div>
   );
 }
