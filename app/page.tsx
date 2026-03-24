@@ -1,7 +1,7 @@
 "use client";
 
 import { ItemSections } from "@/components/item-sections";
-import { Separator } from "@/components/ui/separator";
+import { InBetweenSections, PageTitleSections } from "@/components/sections";
 import {
   BadgeQuestionMark,
   Blocks,
@@ -16,19 +16,13 @@ import {
 export default function Home() {
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
-      <section className="flex flex-col gap-2 w-full px-6 md:px-12 lg:px-24 py-4 md:py-8 lg:py-12">
-        <h1 className="text-3xl font-bold">To-Do App</h1>
-        <p className="text-sm text-muted-foreground">
-          Every major task can be split into a smaller task, start your task
-          management here.
-        </p>
-      </section>
+      <PageTitleSections
+        pageTitle="To-Do App"
+        pageDescription="Every major task can be split into a smaller task, start your task
+          management here."
+      />
 
-      <div className="flex flex-col gap-2 w-full px-6 md:px-12 lg:px-24">
-        <Separator />
-      </div>
-
-      <section className="w-full grid grid-cols-12 gap-2 px-6 md:px-12 lg:px-24 py-4">
+      <InBetweenSections>
         <ItemSections
           sectionHeader="Getting Started"
           sectionDescription="A quick guide to get you started with our product"
@@ -43,9 +37,9 @@ export default function Home() {
             },
           ]}
         />
-      </section>
+      </InBetweenSections>
 
-      <section className="w-full grid grid-cols-12 gap-2 px-6 md:px-12 lg:px-24 py-4">
+      <InBetweenSections>
         <ItemSections
           sectionHeader="Features"
           sectionDescription="Some of our features that you can use to manage and make your
@@ -79,9 +73,9 @@ export default function Home() {
             },
           ]}
         />
-      </section>
+      </InBetweenSections>
 
-      <section className="w-full grid grid-cols-12 gap-2 px-6 md:px-12 lg:px-24 py-4">
+      <InBetweenSections>
         <ItemSections
           sectionHeader="Others"
           sectionDescription="Other features that you might want to check out!"
@@ -111,7 +105,7 @@ export default function Home() {
             },
           ]}
         />
-      </section>
+      </InBetweenSections>
     </div>
   );
 }

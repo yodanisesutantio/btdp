@@ -31,12 +31,16 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { Separator } from "./ui/separator";
+import { usePathname } from "next/navigation";
 
 export interface AppSidebarProps {
   setOpenCommand?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function AppSidebar(props: AppSidebarProps) {
+  const pathname = usePathname();
+  const isActive = (path: string) => pathname === path;
+
   return (
     <>
       <Sidebar>
@@ -72,7 +76,9 @@ export function AppSidebar(props: AppSidebarProps) {
           <SidebarMenu>
             <SidebarMenuItem>
               <Link href="/">
-                <SidebarMenuButton>
+                <SidebarMenuButton
+                  className={isActive("/") ? "bg-muted font-semibold" : ""}
+                >
                   <Home /> Dashboard
                 </SidebarMenuButton>
               </Link>
@@ -83,29 +89,50 @@ export function AppSidebar(props: AppSidebarProps) {
             <SidebarMenu>
               <SidebarMenuItem>
                 <Link href="/tasks">
-                  <SidebarMenuButton>
-                    <LayoutPanelLeft /> Tasks Board
+                  <SidebarMenuButton
+                    className={
+                      isActive("/tasks") ? "bg-muted font-semibold" : ""
+                    }
+                  >
+                    <LayoutPanelLeft
+                      strokeWidth={isActive("/tasks") ? 2.5 : 2}
+                    />{" "}
+                    Tasks Board
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/sheets">
-                  <SidebarMenuButton>
-                    <Sheet /> Sheets
+                  <SidebarMenuButton
+                    className={
+                      isActive("/sheets") ? "bg-muted font-semibold" : ""
+                    }
+                  >
+                    <Sheet strokeWidth={isActive("/sheets") ? 2.5 : 2} /> Sheets
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/timelines">
-                  <SidebarMenuButton>
-                    <Blocks /> Timelines
+                  <SidebarMenuButton
+                    className={
+                      isActive("/timelines") ? "bg-muted font-semibold" : ""
+                    }
+                  >
+                    <Blocks strokeWidth={isActive("/timelines") ? 2.5 : 2} />{" "}
+                    Timelines
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <Link href="/notes">
-                  <SidebarMenuButton>
-                    <FileText /> Notes
+                  <SidebarMenuButton
+                    className={
+                      isActive("/notes") ? "bg-muted font-semibold" : ""
+                    }
+                  >
+                    <FileText strokeWidth={isActive("/notes") ? 2.5 : 2} />
+                    Notes
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
