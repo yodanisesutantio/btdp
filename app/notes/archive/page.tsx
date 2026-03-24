@@ -100,7 +100,7 @@ export default function ArchiveNotesPage() {
                               e.preventDefault();
                             }}
                           >
-                            Archive
+                            Restore Notes
                           </MenubarItem>
                           <MenubarItem
                             onClick={(e) => {
