@@ -9,12 +9,21 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "./ui/breadcrumb";
+import { Suspense } from "react";
 
 export interface PageBreadcrumbsProps {
   className?: string;
 }
 
 export default function PageBreadcrumbs(props: PageBreadcrumbsProps) {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PageBreadcrumbsInnerContent {...props} />
+    </Suspense>
+  );
+}
+
+function PageBreadcrumbsInnerContent(props: PageBreadcrumbsProps) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
   const searchParams = useSearchParams();
