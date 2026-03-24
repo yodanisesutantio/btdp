@@ -31,6 +31,18 @@ export function PageTitleSections(props: SectionsProps) {
   );
 }
 
+export function SectionsWrapper(props: SectionsProps) {
+  return (
+    <>
+      <section
+        className={`flex flex-col gap-2 w-full px-6 md:px-12 lg:px-24 py-4 ${props.className ?? ""}`}
+      >
+        {props.children}
+      </section>
+    </>
+  );
+}
+
 export function InBetweenSections(props: SectionsProps) {
   return (
     <section
