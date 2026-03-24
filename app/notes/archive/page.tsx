@@ -23,66 +23,44 @@ import {
   MenubarSubContent,
   Menubar,
 } from "@/components/ui/menubar";
-import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRightIcon,
+  Ellipsis,
+  FolderCode,
+} from "lucide-react";
 import Link from "next/link";
-
-export interface NotesData {
-  imagePreview?: string;
-  title?: string;
-  labels?: string;
-  slug?: string;
-  content?: string;
-  createdBy?: string;
-  createdAt?: string;
-}
+import { NotesData } from "../page";
 
 const notes: NotesData[] = [
-  {
-    title: "My First Note",
-    labels: "Personal",
-    slug: "my-first-note",
-    createdBy: "Random User",
-    createdAt: "2023-01-01",
-  },
-  {
-    title: "My Second Note",
-    labels: "Private",
-    slug: "my-second-note",
-    createdBy: "John Doe",
-    createdAt: "2023-01-02",
-  },
+  // {
+  //   title: "My First Note",
+  //   labels: "Personal",
+  //   slug: "my-first-note",
+  //   createdBy: "Random User",
+  //   createdAt: "2023-01-01",
+  // },
+  // {
+  //   title: "My Second Note",
+  //   labels: "Private",
+  //   slug: "my-second-note",
+  //   createdBy: "John Doe",
+  //   createdAt: "2023-01-02",
+  // },
 ];
 
-export default function NotesPage() {
+export default function ArchiveNotesPage() {
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
-        pageTitle="Welcome to Notes!"
+        pageTitle="Welcome to Archive Notes!"
         pageDescription={
           <>
-            Here you can write and/or brainstorm about your upcoming projects.
-            Try to invite other participant to contribute to your notes. For
-            more information{" "}
+            Here you can view your archived notes. For more information{" "}
             <Link className="underline hover:no-underline" href={`#`}>
               click here!
             </Link>
           </>
-        }
-        pageCta={
-          <div className="flex gap-2">
-            <Button type="button" className="px-2.5 cursor-pointer">
-              <Plus /> <p>Add Notes</p>
-            </Button>
-            <Button
-              variant={`secondary`}
-              type="button"
-              className="px-2.5 cursor-pointer"
-            >
-              <Link href="/notes/archive">
-                <p>Open Archive</p>
-              </Link>
-            </Button>
-          </div>
         }
       />
 
@@ -178,16 +156,17 @@ export default function NotesPage() {
               <EmptyMedia variant="icon">
                 <FolderCode />
               </EmptyMedia>
-              <EmptyTitle>No Notes Yet</EmptyTitle>
+              <EmptyTitle>No Archived Notes Yet</EmptyTitle>
               <EmptyDescription>
-                You haven&apos;t created any notes yet. Get started by creating
-                your first note.
+                You haven&apos;t archived any notes yet.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent className="flex-row justify-center gap-2">
-              <Button type="button" className="px-2.5 cursor-pointer">
-                <Plus /> <p>Create your first note</p>
-              </Button>
+              <Link href="/notes">
+                <Button type="button" className="px-2.5 cursor-pointer">
+                  <ArrowLeft /> <p>Return to Notes</p>
+                </Button>
+              </Link>
             </EmptyContent>
             <Button variant="link" className="text-muted-foreground" size="sm">
               <Link className="flex gap-2 items-center" href="#">

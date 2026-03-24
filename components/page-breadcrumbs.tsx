@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -17,6 +17,8 @@ export interface PageBreadcrumbsProps {
 export default function PageBreadcrumbs(props: PageBreadcrumbsProps) {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
+  const searchParams = useSearchParams();
+  const queryTitle = searchParams.get("q");
 
   const formatLabel = (segment: string) => {
     return segment
@@ -31,17 +33,20 @@ export default function PageBreadcrumbs(props: PageBreadcrumbsProps) {
           const href = "/" + segments.slice(0, index + 1).join("/");
           const isLast = index === segments.length - 1;
 
+          const label =
+            isLast && queryTitle
+              ? formatLabel(queryTitle)
+              : formatLabel(segment);
+
           return (
-            <div key={href} className="flex items-center">
+            <div key={href} className="flex items-center gap-1.5 sm:gap-2">
               {index !== 0 && <BreadcrumbSeparator />}
 
               <BreadcrumbItem>
                 {isLast ? (
-                  <BreadcrumbPage>{formatLabel(segment)}</BreadcrumbPage>
+                  <BreadcrumbPage>{label}</BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink href={href}>
-                    {formatLabel(segment)}
-                  </BreadcrumbLink>
+                  <BreadcrumbLink href={href}>{label}</BreadcrumbLink>
                 )}
               </BreadcrumbItem>
             </div>

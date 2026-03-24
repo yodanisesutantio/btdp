@@ -43,7 +43,7 @@ export function ItemSections(props: ItemSectionsProps) {
             key={index}
             variant="outline"
             size="sm"
-            className={`relative col-span-12 md:col-span-6 lg:col-span-4 w-full ${item.disabled ? "opacity-50 cursor-not-allowed" : "hover:cursor-pointer hover:bg-muted"}`}
+            className={`relative col-span-12 md:col-span-6 lg:col-span-4 w-full transition-all duration-300 ${item.disabled ? "opacity-50 cursor-not-allowed" : "hover:cursor-pointer hover:bg-muted hover:border-foreground"}`}
           >
             <Link
               href={item.href ?? "#"}
