@@ -4,6 +4,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -16,7 +18,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { ChevronDown, Search, User2 } from "lucide-react";
+import {
+  Blocks,
+  ChevronDown,
+  FileText,
+  HelpCircle,
+  Home,
+  LayoutPanelLeft,
+  Search,
+  Sheet,
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { Separator } from "./ui/separator";
 
 export interface AppSidebarProps {
   setOpenCommand?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,9 +43,9 @@ export function AppSidebar(props: AppSidebarProps) {
         {/* Header */}
         <SidebarHeader>
           <SidebarMenu>
-            <SidebarMenuItem>
+            <SidebarMenuItem className="flex gap-2 h-fit">
               <DropdownMenu>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger className="w-full">
                   <SidebarMenuButton>
                     Select Workspace
                     <ChevronDown className="ml-auto" />
@@ -43,11 +57,64 @@ export function AppSidebar(props: AppSidebarProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              <Image
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent("Random User")}`}
+                alt="random user avatar"
+                className="rounded-full w-8 h-8 shrink-0 object-cover cursor-pointer"
+                width={24}
+                height={24}
+              />
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
         {/* Content */}
-        <SidebarContent></SidebarContent>
+        <SidebarContent className="flex flex-col gap-2 p-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <Link href="/">
+                <SidebarMenuButton>
+                  <Home /> Dashboard
+                </SidebarMenuButton>
+              </Link>
+            </SidebarMenuItem>
+          </SidebarMenu>
+          <SidebarGroup className="px-0">
+            <SidebarGroupLabel>Features</SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <Link href="/tasks">
+                  <SidebarMenuButton>
+                    <LayoutPanelLeft /> Tasks Board
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/sheets">
+                  <SidebarMenuButton>
+                    <Sheet /> Sheets
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/timelines">
+                  <SidebarMenuButton>
+                    <Blocks /> Timelines
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/notes">
+                  <SidebarMenuButton>
+                    <FileText /> Notes
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </SidebarContent>
+        <div className="px-2">
+          <Separator />
+        </div>
         {/* Footer */}
         <SidebarFooter>
           <SidebarMenu>
@@ -61,9 +128,11 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton>
-                <User2 /> Username
-              </SidebarMenuButton>
+              <Link href="/help">
+                <SidebarMenuButton>
+                  <HelpCircle /> Help
+                </SidebarMenuButton>
+              </Link>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

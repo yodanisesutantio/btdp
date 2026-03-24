@@ -19,12 +19,26 @@ import {
   CommandShortcut,
 } from "./ui/command";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useEffect } from "react";
 export interface AppCommandProps {
   open?: boolean;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function AppCommand(props: AppCommandProps) {
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (props.setOpen) props.setOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.setOpen]);
+
   return (
     <Dialog.Root open={props.open} onOpenChange={props.setOpen}>
       <Dialog.Portal>
