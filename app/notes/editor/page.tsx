@@ -25,6 +25,9 @@ function NotesEditorPageInnerContent() {
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <SectionsWrapper className="pt-8 pb-0">
         <div className="relative flex flex-col">
+          <span className="text-xs text-end text-muted-foreground">
+            {notes?.title?.length ?? 0}/64
+          </span>
           <Input
             type="text"
             value={notes?.title}
@@ -33,9 +36,6 @@ function NotesEditorPageInnerContent() {
             className="w-full !border-0 !ring-0 !shadow-none focus:!ring-0 focus:!shadow-none focus-visible:!ring-0 focus-visible:!shadow-none outline-none !text-3xl font-bold bg-transparent p-0 h-auto"
             maxLength={64}
           />
-          <span className="text-xs text-end text-muted-foreground">
-            {notes?.title?.length ?? 0}/64
-          </span>
         </div>
       </SectionsWrapper>
 
