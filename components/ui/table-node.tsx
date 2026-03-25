@@ -1233,6 +1233,7 @@ function useTableCellPresentation(element: TTableCellElement) {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RowDragHandle({ dragRef }: { dragRef: React.Ref<any> }) {
   const editor = useEditorRef();
   const element = useElement();

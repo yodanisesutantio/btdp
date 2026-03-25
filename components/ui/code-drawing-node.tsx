@@ -530,6 +530,7 @@ function CodeDrawingPreviewArea({
   loading,
   code,
   viewMode,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   readOnly: _readOnly = false,
   isMobile = false,
   showBorder = false,
@@ -572,6 +573,7 @@ function CodeDrawingPreviewArea({
         >
           {loading && <div className="text-muted-foreground">Loading...</div>}
           {!loading && image && (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={image}
               alt="Code drawing"

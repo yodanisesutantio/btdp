@@ -1,6 +1,12 @@
-import { Toaster } from 'sonner';
+"use client";
 
-import { PlateEditor } from '@/components/editor/plate-editor';
+import dynamic from "next/dynamic";
+import { Toaster } from "sonner";
+
+const PlateEditor = dynamic(
+  () => import("@/components/editor/plate-editor").then((m) => m.PlateEditor),
+  { ssr: false },
+);
 
 export default function Page() {
   return (

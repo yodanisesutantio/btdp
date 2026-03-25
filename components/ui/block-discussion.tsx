@@ -71,6 +71,7 @@ export const BlockDiscussion: RenderNodeWrapper<AnyPluginConfig> = (props) => {
     return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const Inner = (props: any) => (
     <BlockCommentContent
       blockPath={blockPath}
@@ -206,8 +207,11 @@ const BlockCommentContent = ({
         <PopoverContent
           className="max-h-[min(50dvh,calc(-24px+var(--radix-popper-available-height)))] w-[380px] min-w-[130px] max-w-[calc(100vw-24px)] overflow-y-auto p-0 data-[state=closed]:opacity-0"
           {...({
-            onCloseAutoFocus: (e) => e.preventDefault(),
-            onOpenAutoFocus: (e) => e.preventDefault(),
+            onCloseAutoFocus: (e: React.FocusEvent<HTMLDivElement>) =>
+              e.preventDefault(),
+            onOpenAutoFocus: (e: React.FocusEvent<HTMLDivElement>) =>
+              e.preventDefault(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any)}
           align="center"
           side="bottom"
