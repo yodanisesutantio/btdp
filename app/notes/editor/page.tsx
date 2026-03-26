@@ -2,13 +2,14 @@
 
 import { SectionsWrapper } from "@/components/sections";
 import { Input } from "@/components/ui/input";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { NotesData } from "../page";
+import { dummyNotes, NotesData } from "../page";
 import { Separator } from "@/components/ui/separator";
 import { Plate, usePlateEditor } from "platejs/react";
 import { Editor, EditorContainer } from "@/components/ui/editor";
 import { EditorKit } from "@/components/editor/editor-kit";
+import { slugify } from "@/lib/helper";
 
 export default function NotesEditorPage() {
   return (
@@ -19,13 +20,29 @@ export default function NotesEditorPage() {
 }
 
 function NotesEditorPageInnerContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const q = searchParams.get("q");
-  const [notes, setNotes] = useState<NotesData>();
+  const slug = searchParams.get("q");
 
   const editor = usePlateEditor({
     plugins: EditorKit,
   });
+
+  const [notes, setNotesContent] = useState<NotesData | undefined>(
+    dummyNotes?.find((n) => n.slug === slug),
+  );
+
+  const handleTitleChange = (value: string) => {
+    setNotesContent({ ...notes, title: value });
+
+    const slug = slugify(value);
+
+    if (slug) {
+      router.replace(`/notes/editor?q=${slug}`);
+    } else {
+      router.replace(`/notes`);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
@@ -37,7 +54,7 @@ function NotesEditorPageInnerContent() {
           <Input
             type="text"
             value={notes?.title}
-            onChange={(e) => setNotes({ ...notes, title: e.target.value })}
+            onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Enter note title..."
             className="w-full !border-0 !ring-0 !shadow-none focus:!ring-0 focus:!shadow-none focus-visible:!ring-0 focus-visible:!shadow-none outline-none !text-3xl font-bold bg-transparent p-0 h-auto"
             maxLength={64}

@@ -36,7 +36,7 @@ export interface NotesData {
   createdAt?: string;
 }
 
-const notes: NotesData[] = [
+export const dummyNotes: NotesData[] = [
   {
     title: "My First Note",
     labels: "Personal",
@@ -87,8 +87,8 @@ export default function NotesPage() {
       />
 
       <InBetweenSections className="gap-4">
-        {notes.length > 0 ? (
-          notes.map((note, index) => (
+        {dummyNotes.length > 0 ? (
+          dummyNotes.map((note, index) => (
             <Link
               key={index}
               href={`/notes/editor?q=${note.slug}`}
