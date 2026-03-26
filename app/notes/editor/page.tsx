@@ -10,6 +10,7 @@ import { Plate, usePlateEditor } from "platejs/react";
 import { Editor, EditorContainer } from "@/components/ui/editor";
 import { EditorKit } from "@/components/editor/editor-kit";
 import { slugify } from "@/lib/helper";
+import { CreatableSelect } from "@/components/app-creatable-select";
 
 export default function NotesEditorPage() {
   return (
@@ -47,6 +48,12 @@ function NotesEditorPageInnerContent() {
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <SectionsWrapper className="pt-8 pb-0">
+        <CreatableSelect
+          value={notes?.labels}
+          onChange={(value) => setNotesContent({ ...notes, labels: value })}
+          className="w-48"
+        />
+
         <div className="relative flex flex-col">
           <span className="text-xs text-end text-muted-foreground">
             {notes?.title?.length ?? 0}/64
