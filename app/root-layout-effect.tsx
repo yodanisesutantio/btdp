@@ -18,10 +18,10 @@ export function RootLayoutEffect({ children }: RootLayoutEffectProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full min-w-0">
         <AppSidebar setOpenCommand={setOpenCommand} />
 
-        <main className="flex flex-1 flex-col">
+        <main className="flex flex-1 flex-col min-w-0">
           <div className="flex border-b">
             <SidebarTrigger />
             {pathname !== "/" && (

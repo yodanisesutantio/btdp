@@ -136,3 +136,7 @@
     @apply font-sans;
   }
 }
+
+.vertical-lr {
+  writing-mode: vertical-lr;
+}

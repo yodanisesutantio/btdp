@@ -5,11 +5,11 @@ import { InBetweenSections, PageTitleSections } from "@/components/sections";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
+  EmptyContent,
+  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
 } from "@/components/ui/empty";
 import {
   MenubarMenu,
@@ -21,119 +21,65 @@ import {
   MenubarSub,
   MenubarSubTrigger,
   MenubarSubContent,
+  Menubar,
 } from "@/components/ui/menubar";
-import { Menubar } from "@base-ui/react";
-import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRightIcon,
+  Ellipsis,
+  FolderCode,
+} from "lucide-react";
 import Link from "next/link";
+import { TasksBoardData } from "../page";
 
-export interface TasksBoardData {
-  imagePreview?: string;
-  title?: string;
-  labels?: string;
-  slug?: string;
-  content?: string;
-  createdBy?: string;
-  createdAt?: string;
-}
-
-export interface TasksState {
-  key?: string;
-  title?: string;
-  color?: string;
-  collapsed?: boolean;
-}
-
-export const dummyTasksState: TasksState[] = [
-  {
-    key: "backlog",
-    title: "Backlog",
-    color: "gray",
-    collapsed: false,
-  },
-  {
-    key: "to-do",
-    title: "To Do",
-    color: "mauve",
-    collapsed: false,
-  },
-  {
-    key: "in-progress",
-    title: "In Progress",
-    color: "blue",
-    collapsed: false,
-  },
-  {
-    key: "done",
-    title: "Done",
-    color: "green",
-    collapsed: false,
-  },
-  {
-    key: "cancelled",
-    title: "Cancelled",
-    color: "red",
-    collapsed: false,
-  },
+export const tasks: TasksBoardData[] = [
+  // {
+  //   title: "My First Note",
+  //   labels: "Personal",
+  //   slug: "my-first-note",
+  //   createdBy: "Random User",
+  //   createdAt: "2023-01-01",
+  // },
+  // {
+  //   title: "My Second Note",
+  //   labels: "Private",
+  //   slug: "my-second-note",
+  //   createdBy: "John Doe",
+  //   createdAt: "2023-01-02",
+  // },
 ];
 
-export const borderColorMap: Record<string, string> = {
-  gray: "border-slate-400",
-  mauve: "border-mauve-400",
-  blue: "border-blue-400",
-  green: "border-green-400",
-  red: "border-red-400",
-};
-
-export const dummyTasksBoard: TasksBoardData[] = [
-  {
-    title: "My First Board",
-    labels: "Personal",
-    slug: "my-first-board",
-    createdBy: "Random User",
-    createdAt: "2023-01-01",
-  },
-];
-
-export default function TasksPage() {
+export default function ArchiveNotesPage() {
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
-        pageTitle="Welcome to Tasks Board!"
-        pageDescription={`Here you can manage and watch over the entire projects!`}
-        pageCta={
-          <div className="flex gap-2">
-            <Button type="button" className="px-2.5 cursor-pointer">
-              <Plus /> <p>Add Tasks Board</p>
-            </Button>
-            <Button
-              variant={`secondary`}
-              type="button"
-              className="px-2.5 cursor-pointer"
-            >
-              <Link href="/tasks/archive">
-                <p>Open Archive</p>
-              </Link>
-            </Button>
-          </div>
+        pageTitle="Welcome to Archive Tasks Board!"
+        pageDescription={
+          <>
+            Here you can view your archived tasks board. For more information{" "}
+            <Link className="underline hover:no-underline" href={`#`}>
+              click here!
+            </Link>
+          </>
         }
       />
 
       <InBetweenSections className="gap-4">
-        {dummyTasksBoard.length > 0 ? (
-          dummyTasksBoard.map((board, index) => (
+        {tasks.length > 0 ? (
+          tasks.map((task, index) => (
             <Link
               key={index}
-              href={`/tasks/board?q=${board.slug}`}
+              href={`/notes/editor?q=${task.slug}`}
               className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
             >
               <NotesPreviewCard
                 key={index}
                 notes={{
-                  title: board.title,
-                  labels: board.labels,
-                  slug: board.slug,
-                  createdBy: board.createdBy,
-                  createdAt: board.createdAt,
+                  title: task.title,
+                  labels: task.labels,
+                  slug: task.slug,
+                  createdBy: task.createdBy,
+                  createdAt: task.createdAt,
                 }}
                 className="gap-2 hover:bg-muted hover:ring-foreground transition-all duration-300"
                 cardMenubar={
@@ -149,28 +95,12 @@ export default function TasksPage() {
                       </MenubarTrigger>
                       <MenubarContent>
                         <MenubarGroup>
-                          <Link
-                            key={index}
-                            href={`/tasks/setting?q=${board.slug}`}
-                            className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
-                          >
-                            <MenubarItem
-                              onClick={(e) => {
-                                e.preventDefault();
-                              }}
-                            >
-                              Setting
-                            </MenubarItem>
-                          </Link>
-                        </MenubarGroup>
-                        <MenubarSeparator />
-                        <MenubarGroup>
                           <MenubarItem
                             onClick={(e) => {
                               e.preventDefault();
                             }}
                           >
-                            Archive
+                            Restore Notes
                           </MenubarItem>
                           <MenubarItem
                             onClick={(e) => {
@@ -226,16 +156,17 @@ export default function TasksPage() {
               <EmptyMedia variant="icon">
                 <FolderCode />
               </EmptyMedia>
-              <EmptyTitle>No Boards Yet</EmptyTitle>
+              <EmptyTitle>No Archived Tasks Board Yet</EmptyTitle>
               <EmptyDescription>
-                You haven&apos;t created any tasks board yet. Get started by
-                creating your first board.
+                You haven&apos;t archived any tasks board yet.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent className="flex-row justify-center gap-2">
-              <Button type="button" className="px-2.5 cursor-pointer">
-                <Plus /> <p>Create your first tasks board</p>
-              </Button>
+              <Link href="/tasks">
+                <Button type="button" className="px-2.5 cursor-pointer">
+                  <ArrowLeft /> <p>Return to Task Boards</p>
+                </Button>
+              </Link>
             </EmptyContent>
             <Button variant="link" className="text-muted-foreground" size="sm">
               <Link className="flex gap-2 items-center" href="#">
