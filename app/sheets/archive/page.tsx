@@ -5,87 +5,81 @@ import { InBetweenSections, PageTitleSections } from "@/components/sections";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
+  EmptyContent,
+  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
 } from "@/components/ui/empty";
 import {
-  Menubar,
+  MenubarMenu,
+  MenubarTrigger,
   MenubarContent,
   MenubarGroup,
   MenubarItem,
-  MenubarMenu,
   MenubarSeparator,
   MenubarSub,
-  MenubarSubContent,
   MenubarSubTrigger,
-  MenubarTrigger,
+  MenubarSubContent,
+  Menubar,
 } from "@/components/ui/menubar";
-import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowUpRightIcon,
+  Ellipsis,
+  FolderCode,
+} from "lucide-react";
 import Link from "next/link";
+import { SheetsData } from "../page";
 
-export interface SheetsData {
-  imagePreview?: string;
-  title?: string;
-  labels?: string;
-  slug?: string;
-  content?: string;
-  createdBy?: string;
-  createdAt?: string;
-}
-
-export const dummySheets: SheetsData[] = [
-  {
-    title: "My First Sheet",
-    labels: "Personal",
-    slug: "my-first-sheet",
-    createdBy: "Random User",
-    createdAt: "2023-01-01",
-  },
+export const tasks: SheetsData[] = [
+  // {
+  //   title: "My First Note",
+  //   labels: "Personal",
+  //   slug: "my-first-note",
+  //   createdBy: "Random User",
+  //   createdAt: "2023-01-01",
+  // },
+  // {
+  //   title: "My Second Note",
+  //   labels: "Private",
+  //   slug: "my-second-note",
+  //   createdBy: "John Doe",
+  //   createdAt: "2023-01-02",
+  // },
 ];
 
-export default function SheetsPage() {
+export default function ArchiveSheetsPage() {
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
-        pageTitle="Welcome to Sheets!"
-        pageDescription={`Create your own spreadsheet!`}
-        pageCta={
-          <div className="flex gap-2">
-            <Button type="button" className="px-2.5 cursor-pointer">
-              <Plus /> <p>Add Sheets</p>
-            </Button>
-            <Button
-              variant={`secondary`}
-              type="button"
-              className="px-2.5 cursor-pointer"
-            >
-              <Link href="/sheets/archive">
-                <p>Open Archive</p>
-              </Link>
-            </Button>
-          </div>
+        pageTitle="Welcome to Archive Sheets!"
+        pageDescription={
+          <>
+            Here you can view your archived sheets. For more information{" "}
+            <Link className="underline hover:no-underline" href={`#`}>
+              click here!
+            </Link>
+          </>
         }
       />
 
       <InBetweenSections className="gap-4">
-        {dummySheets.length > 0 ? (
-          dummySheets.map((sheet, index) => (
+        {tasks.length > 0 ? (
+          tasks.map((task, index) => (
             <Link
               key={index}
-              href={`/sheets/editor?q=${sheet.slug}`}
+              href={`/notes/editor?q=${task.slug}`}
               className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
             >
               <NotesPreviewCard
                 key={index}
                 notes={{
-                  title: sheet.title,
-                  labels: sheet.labels,
-                  slug: sheet.slug,
-                  createdBy: sheet.createdBy,
-                  createdAt: sheet.createdAt,
+                  title: task.title,
+                  labels: task.labels,
+                  slug: task.slug,
+                  createdBy: task.createdBy,
+                  createdAt: task.createdAt,
                 }}
                 className="gap-2 hover:bg-muted hover:ring-foreground transition-all duration-300"
                 cardMenubar={
@@ -106,7 +100,7 @@ export default function SheetsPage() {
                               e.preventDefault();
                             }}
                           >
-                            Archive
+                            Restore Sheets
                           </MenubarItem>
                           <MenubarItem
                             onClick={(e) => {
@@ -162,16 +156,17 @@ export default function SheetsPage() {
               <EmptyMedia variant="icon">
                 <FolderCode />
               </EmptyMedia>
-              <EmptyTitle>No Sheets Yet</EmptyTitle>
+              <EmptyTitle>No Archived Sheets Yet</EmptyTitle>
               <EmptyDescription>
-                You haven&apos;t created any sheets yet. Get started by creating
-                your first sheet.
+                You haven&apos;t archived any sheets yet.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent className="flex-row justify-center gap-2">
-              <Button type="button" className="px-2.5 cursor-pointer">
-                <Plus /> <p>Create your first sheet</p>
-              </Button>
+              <Link href="/sheets">
+                <Button type="button" className="px-2.5 cursor-pointer">
+                  <ArrowLeft /> <p>Return to Sheets</p>
+                </Button>
+              </Link>
             </EmptyContent>
             <Button variant="link" className="text-muted-foreground" size="sm">
               <Link className="flex gap-2 items-center" href="#">
