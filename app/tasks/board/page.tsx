@@ -9,6 +9,7 @@ import {
   borderColorMap,
   dummyTasksState,
   priorityData,
+  TasksItem,
   TasksState,
 } from "../page";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -50,12 +51,12 @@ function TasksBoardPageInnerContent() {
     plugins: EditorKit,
   });
 
+  const [layout, setLayout] = useState<"list" | "kanban">("kanban");
   const [open, setOpen] = useState(false);
   const [side, setSide] = useState<"left" | "right">("right");
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const [layout, setLayout] = useState<"list" | "kanban">("kanban");
-
   const [states, setStates] = useState<TasksState[]>(dummyTasksState);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [draggedKey, setDraggedKey] = useState<string | null>(null);
 
   const selectedTask = useMemo(() => {
     return (
@@ -65,9 +66,43 @@ function TasksBoardPageInnerContent() {
     );
   }, [selectedKey, states]);
 
+  const handleDrop = (targetColKey: string) => {
+    if (!draggedKey) return;
+
+    setStates((prev) => {
+      let draggedTask: TasksItem | null = null;
+
+      const next = prev.map((col) => {
+        const found = col.taskItem?.find((t) => t.key === draggedKey);
+
+        if (found) {
+          draggedTask = found;
+          return {
+            ...col,
+            taskItem: col.taskItem?.filter((t) => t.key !== draggedKey) ?? [],
+          };
+        }
+
+        return col;
+      });
+
+      return next.map((col) => {
+        if (col.key === targetColKey && draggedTask) {
+          return {
+            ...col,
+            taskItem: [...(col.taskItem ?? []), draggedTask],
+          };
+        }
+        return col;
+      });
+    });
+
+    setDraggedKey(null);
+  };
+
   return (
     <div className="relative flex flex-col gap-4 w-full justify-center font-sans pb-1 min-w-0 h-full bg-muted">
-      <ButtonGroup className="fixed right-6 top-6">
+      <ButtonGroup className="fixed right-6 top-6 z-30">
         <Button
           variant={layout === "list" ? "default" : "outline"}
           className={`cursor-pointer`}
@@ -89,6 +124,8 @@ function TasksBoardPageInnerContent() {
             <div
               key={state.key}
               className={`group relative flex flex-shrink-0 flex-col ${state.collapsed ? "w-fit" : "w-[350px]"}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDrop(state.key ?? "")}
             >
               <div className="sticky top-0 z-[2] w-full flex-shrink-0 mb-1">
                 <div
@@ -171,6 +208,9 @@ function TasksBoardPageInnerContent() {
                           className="block rounded border-[1px] outline-[0.5px] outline-transparent w-full text-sm transition-all hover hover:cursor-pointer hover:bg-muted/40 hover:border-foreground/30"
                           draggable="true"
                           data-drop-target-for-element="true"
+                          onDragStart={() => {
+                            setDraggedKey(item.key ?? null);
+                          }}
                         >
                           <div className="space-y-2 px-3 py-2">
                             <div className="relative">
