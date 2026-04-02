@@ -23,7 +23,17 @@ import {
   MenubarSubContent,
 } from "@/components/ui/menubar";
 import { Menubar } from "@base-ui/react";
-import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
+import {
+  ArrowUpRightIcon,
+  Ban,
+  Ellipsis,
+  FolderCode,
+  Plus,
+  Signal,
+  SignalHigh,
+  SignalLow,
+  SignalMedium,
+} from "lucide-react";
 import Link from "next/link";
 
 export interface TasksBoardData {
@@ -41,6 +51,26 @@ export interface TasksState {
   title?: string;
   color?: string;
   collapsed?: boolean;
+  taskItem?: TasksItem[];
+}
+
+export interface PriorityData {
+  key?: string;
+  name?: string;
+  icon?: React.ReactElement;
+}
+
+export interface TasksItem {
+  key?: string;
+  title?: string;
+  slug?: string;
+  content?: string;
+  priority?: string;
+  startDate?: string;
+  endDate?: string;
+  labels?: string;
+  createdBy?: string;
+  createdAt?: string;
 }
 
 export const dummyTasksState: TasksState[] = [
@@ -49,30 +79,80 @@ export const dummyTasksState: TasksState[] = [
     title: "Backlog",
     color: "gray",
     collapsed: false,
+    taskItem: [
+      {
+        key: "task-1",
+        slug: "task-1",
+        title: "Task 1",
+        content: "This is the first backlog Task",
+        createdBy: "Random User",
+        createdAt: "2023-01-01",
+      },
+    ],
   },
   {
     key: "to-do",
     title: "To Do",
     color: "mauve",
     collapsed: false,
+    taskItem: [
+      {
+        key: "task-2",
+        slug: "task-2",
+        title: "Task 2",
+        content: "This is the first To Do Task",
+        createdBy: "Random User",
+        createdAt: "2023-01-01",
+      },
+    ],
   },
   {
     key: "in-progress",
     title: "In Progress",
     color: "blue",
     collapsed: false,
+    taskItem: [
+      {
+        key: "task-3",
+        slug: "task-3",
+        title: "Task 3",
+        content: "This is the first In Progress Task",
+        createdBy: "Random User",
+        createdAt: "2023-01-01",
+      },
+    ],
   },
   {
     key: "done",
     title: "Done",
     color: "green",
     collapsed: false,
+    taskItem: [
+      {
+        key: "task-4",
+        slug: "task-4",
+        title: "Task 4",
+        content: "This is the first Done Task",
+        createdBy: "Random User",
+        createdAt: "2023-01-01",
+      },
+    ],
   },
   {
     key: "cancelled",
     title: "Cancelled",
     color: "red",
     collapsed: false,
+    taskItem: [
+      {
+        key: "task-5",
+        slug: "task-5",
+        title: "Task 5",
+        content: "This is the first cancelled Task",
+        createdBy: "Random User",
+        createdAt: "2023-01-01",
+      },
+    ],
   },
 ];
 
@@ -83,6 +163,34 @@ export const borderColorMap: Record<string, string> = {
   green: "border-green-400",
   red: "border-red-400",
 };
+
+export const priorityData: PriorityData[] = [
+  {
+    key: "none",
+    name: "None",
+    icon: <Ban className="text-black h-3.5 w-3.5" />,
+  },
+  {
+    key: "low",
+    name: "Low",
+    icon: <SignalLow className="text-blue-500 h-3.5 w-3.5" />,
+  },
+  {
+    key: "medium",
+    name: "Medium",
+    icon: <SignalMedium className="text-yellow-500 h-3.5 w-3.5" />,
+  },
+  {
+    key: "high",
+    name: "High",
+    icon: <SignalHigh className="text-orange-500 h-3.5 w-3.5" />,
+  },
+  {
+    key: "critical",
+    name: "Critical",
+    icon: <Signal className="text-red-500 h-3.5 w-3.5" />,
+  },
+];
 
 export const dummyTasksBoard: TasksBoardData[] = [
   {
