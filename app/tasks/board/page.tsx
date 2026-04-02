@@ -364,6 +364,12 @@ function TasksBoardPageInnerContent() {
                   className={`cursor-pointer`}
                   variant="ghost"
                   size="icon"
+                  onClick={() => {
+                    setOpen(false);
+                    setTimeout(() => {
+                      setSelectedKey(null);
+                    }, 500);
+                  }}
                 >
                   <MoveRight className="h-4 w-4" />
                 </Button>
