@@ -21,8 +21,8 @@ import {
   MenubarSub,
   MenubarSubTrigger,
   MenubarSubContent,
+  Menubar,
 } from "@/components/ui/menubar";
-import { Menubar } from "@base-ui/react";
 import {
   ArrowUpRightIcon,
   Ban,
