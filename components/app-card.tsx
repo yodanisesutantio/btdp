@@ -1,6 +1,6 @@
 "use client";
 
-import { NotesData } from "@/app/notes/page";
+import { NotesData } from "@/app/(main)/notes/page";
 import { Badge } from "./ui/badge";
 import {
   Card,
