@@ -31,7 +31,8 @@ export interface SheetsData {
   title?: string;
   labels?: string;
   slug?: string;
-  content?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  content?: any;
   createdBy?: string;
   createdAt?: string;
 }
