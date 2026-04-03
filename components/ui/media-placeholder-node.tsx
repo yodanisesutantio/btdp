@@ -69,7 +69,10 @@ export const PlaceholderElement = withHOC(
     const { openFilePicker } = useFilePicker({
       accept: currentContent.accept,
       multiple: true,
-      onFilesSelected: ({ plainFiles: updatedFiles }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onFilesSelected: (data: any) => {
+        if (!data.plainFiles) return;
+        const updatedFiles = data.plainFiles;
         const firstFile = updatedFiles[0];
         const restFiles = updatedFiles.slice(1);
 

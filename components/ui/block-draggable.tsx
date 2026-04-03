@@ -269,7 +269,7 @@ const DragHandle = React.memo(function DragHandle({
               // If current block is not in selection, use it as the starting point
               if (
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                !selectionNodes.some(([node]: [any]) => node.id === element.id)
+                !selectionNodes.some(([node]: any[]) => node.id === element.id)
               ) {
                 selectionNodes = [[element, editor.api.findPath(element)!]];
               }
@@ -310,7 +310,7 @@ const DragHandle = React.memo(function DragHandle({
               // If current block is not in selection, use it as the starting point
               if (
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                !selectedBlocks.some(([node]: [any]) => node.id === element.id)
+                !selectedBlocks.some(([node]: any[]) => node.id === element.id)
               ) {
                 selectedBlocks = [[element, editor.api.findPath(element)!]];
               }

@@ -1,0 +1,11 @@
+diff --git a/node_modules/numfmt/dist/numfmt.d.ts b/node_modules/numfmt/dist/numfmt.d.ts
+index 000000..000000
+--- a/node_modules/numfmt/dist/numfmt.d.ts
++++ b/node_modules/numfmt/dist/numfmt.d.ts
+@@ -1,5 +1,1 @@
+-Node {
+-  type: { names: [ 'string' ] },
+-  name: 'd[0]',
+-  longname: 'd[0]',
+-}
++declare module "numfmt";

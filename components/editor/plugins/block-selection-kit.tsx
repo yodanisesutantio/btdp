@@ -19,7 +19,7 @@ export const BlockSelectionKit = [
       onKeyDownSelecting: (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         editor: any,
-        e: React.KeyboardEvent<HTMLDivElement>,
+        e: KeyboardEvent,
       ) => {
         if (isHotkey("mod+j")(e)) {
           editor.getApi(AIChatPlugin).aiChat.show();
