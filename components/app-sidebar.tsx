@@ -25,13 +25,16 @@ import {
   HelpCircle,
   Home,
   LayoutPanelLeft,
+  Power,
   Search,
   Sheet,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { Separator } from "./ui/separator";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 export interface AppSidebarProps {
   setOpenCommand?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -39,7 +42,31 @@ export interface AppSidebarProps {
 
 export function AppSidebar(props: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const isActive = (path: string) => pathname === path;
+
+  const user = localStorage.getItem("user");
+
+  const handleSignOut = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await fetch("/api/signout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+      } catch (err) {
+        toast.error("Failed to sign out.", {
+          description: "Please try again later. Or contact support.",
+        });
+        console.error(err);
+      }
+    }
+
+    localStorage.clear();
+    router.replace("/signin");
+  };
 
   return (
     <>
@@ -61,13 +88,26 @@ export function AppSidebar(props: AppSidebarProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Image
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent("Random User")}`}
-                alt="random user avatar"
-                className="rounded-full w-8 h-8 shrink-0 object-cover cursor-pointer"
-                width={24}
-                height={24}
-              />
+              {(() => {
+                const userObj = user ? JSON.parse(user) : null;
+
+                return (
+                  <Tooltip>
+                    <TooltipTrigger className={`shrink-0`}>
+                      <Image
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(`${userObj?.first_name || ""} ${userObj?.last_name || ""}`.trim())}`}
+                        alt="random user avatar"
+                        className="rounded-full w-8 h-8 shrink-0 object-cover cursor-pointer"
+                        width={24}
+                        height={24}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {userObj?.first_name} {userObj?.last_name}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })()}
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
@@ -75,11 +115,11 @@ export function AppSidebar(props: AppSidebarProps) {
         <SidebarContent className="flex flex-col gap-2 p-2">
           <SidebarMenu>
             <SidebarMenuItem>
-              <Link href="/">
+              <Link href="/home">
                 <SidebarMenuButton
-                  className={isActive("/") ? "bg-muted font-semibold" : ""}
+                  className={isActive("/home") ? "bg-muted font-semibold" : ""}
                 >
-                  <Home /> Dashboard
+                  <Home /> Home
                 </SidebarMenuButton>
               </Link>
             </SidebarMenuItem>
@@ -160,6 +200,15 @@ export function AppSidebar(props: AppSidebarProps) {
                   <HelpCircle /> Help
                 </SidebarMenuButton>
               </Link>
+            </SidebarMenuItem>
+            <Separator />
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="text-red-500 font-semibold hover:bg-red-500/15 hover:text-red-500 duration-300"
+                onClick={handleSignOut}
+              >
+                <Power strokeWidth={3} /> Sign Out
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

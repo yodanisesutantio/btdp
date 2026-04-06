@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import PageBreadcrumbs from "@/components/page-breadcrumbs";
 import { Separator } from "@/components/ui/separator";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -35,6 +36,7 @@ export function RootLayoutEffect({ children }: RootLayoutEffectProps) {
           </div>
           {children}
         </main>
+        <Toaster />
       </div>
 
       <AppCommand open={openCommand} setOpen={setOpenCommand} />

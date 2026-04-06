@@ -140,3 +140,7 @@
 .vertical-lr {
   writing-mode: vertical-lr;
 }
+
+[data-description] {
+  color: var(--muted-foreground) !important;
+}

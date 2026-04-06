@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "@/app/globals.css";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { RootLayoutEffect } from "../root-layout-effect";
+import { Toaster } from "@/components/ui/sonner";
 
 export const metadata: Metadata = {
   title: "To-Do App",
@@ -14,8 +13,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <TooltipProvider>
-      <RootLayoutEffect>{children}</RootLayoutEffect>
-    </TooltipProvider>
+    <>
+      <main className="flex flex-1 flex-col min-w-0">{children}</main>
+      <Toaster />
+    </>
   );
 }
