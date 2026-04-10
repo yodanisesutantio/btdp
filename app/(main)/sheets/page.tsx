@@ -1,6 +1,7 @@
 "use client";
 
 import { NotesPreviewCard } from "@/components/app-card";
+import { DialogStickyFooter } from "@/components/app-sticky-footer-dialog";
 import { InBetweenSections, PageTitleSections } from "@/components/sections";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,8 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@/components/ui/empty";
+import { FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import {
   Menubar,
   MenubarContent,
@@ -25,6 +28,7 @@ import {
 } from "@/components/ui/menubar";
 import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export interface SheetsData {
   imagePreview?: string;
@@ -37,17 +41,44 @@ export interface SheetsData {
   createdAt?: string;
 }
 
-export const dummySheets: SheetsData[] = [
-  {
-    title: "My First Sheet",
-    labels: "Personal",
-    slug: "my-first-sheet",
-    createdBy: "Random User",
-    createdAt: "2023-01-01",
-  },
-];
+const emptySheets: SheetsData = {
+  imagePreview: "",
+  title: "",
+  labels: "",
+  slug: "",
+  content: "",
+  createdBy: "",
+  createdAt: "",
+};
+
+// export const dummySheets: SheetsData[] = [
+//   {
+//     title: "My First Sheet",
+//     labels: "Personal",
+//     slug: "my-first-sheet",
+//     createdBy: "Random User",
+//     createdAt: "2023-01-01",
+//   },
+// ];
 
 export default function SheetsPage() {
+  const [sheets, setSheets] = useState<SheetsData[]>([]);
+  const [selectedSheet, setSelectedSheet] = useState<SheetsData | null>(
+    emptySheets,
+  );
+  const [openDialog, setOpenDialog] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const openDialogCreateSheet = () => {
+    setOpenDialog(true);
+    setSelectedSheet(emptySheets);
+  };
+
+  const closeDialogCreateSheet = () => {
+    setOpenDialog(false);
+    setSelectedSheet(null);
+  };
+
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
@@ -55,7 +86,11 @@ export default function SheetsPage() {
         pageDescription={`Create your own spreadsheet!`}
         pageCta={
           <div className="flex gap-2">
-            <Button type="button" className="px-2.5 cursor-pointer">
+            <Button
+              type="button"
+              className="px-2.5 cursor-pointer"
+              onClick={openDialogCreateSheet}
+            >
               <Plus /> <p>Add Sheets</p>
             </Button>
             <Button
@@ -72,8 +107,8 @@ export default function SheetsPage() {
       />
 
       <InBetweenSections className="gap-4">
-        {dummySheets.length > 0 ? (
-          dummySheets.map((sheet, index) => (
+        {sheets.length > 0 ? (
+          sheets.map((sheet, index) => (
             <Link
               key={index}
               href={`/sheets/editor?q=${sheet.slug}`}
@@ -170,7 +205,11 @@ export default function SheetsPage() {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent className="flex-row justify-center gap-2">
-              <Button type="button" className="px-2.5 cursor-pointer">
+              <Button
+                type="button"
+                className="px-2.5 cursor-pointer"
+                onClick={openDialogCreateSheet}
+              >
                 <Plus /> <p>Create your first sheet</p>
               </Button>
             </EmptyContent>
@@ -182,6 +221,44 @@ export default function SheetsPage() {
           </Empty>
         )}
       </InBetweenSections>
+
+      <DialogStickyFooter
+        open={openDialog}
+        onOpenChange={setOpenDialog}
+        dialogTitle="Create New Sheet"
+        content={
+          <FieldSet>
+            <div className="flex flex-col gap-2">
+              <FieldLabel htmlFor="title">Sheets Title</FieldLabel>
+              <Input
+                id="title"
+                type="text"
+                placeholder="e.g. December Budget"
+                value={selectedSheet?.title}
+                onChange={(e) =>
+                  setSelectedSheet({
+                    ...selectedSheet,
+                    title: e.target.value,
+                  })
+                }
+                required
+              />
+            </div>
+          </FieldSet>
+        }
+        dialogAction={
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={closeDialogCreateSheet}
+              className="cursor-pointer"
+            >
+              Discard
+            </Button>
+            <Button className="cursor-pointer">Save</Button>
+          </div>
+        }
+      />
     </div>
   );
 }
