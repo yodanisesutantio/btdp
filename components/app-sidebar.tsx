@@ -28,6 +28,7 @@ import {
   Power,
   Search,
   Sheet,
+  Users,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -178,6 +179,33 @@ export function AppSidebar(props: AppSidebarProps) {
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroup>
+          {(() => {
+            const userObj = user ? JSON.parse(user) : null;
+            return (
+              userObj?.username === "administrator" && (
+                <>
+                  <Separator />
+                  <SidebarGroup className="px-0">
+                    <SidebarGroupLabel>For Administrators</SidebarGroupLabel>
+                    <SidebarMenu>
+                      <SidebarMenuItem>
+                        <Link href="/users">
+                          <SidebarMenuButton
+                            className={
+                              isActive("/users") ? "bg-muted font-semibold" : ""
+                            }
+                          >
+                            <Users strokeWidth={isActive("/users") ? 2.5 : 2} />
+                            Users
+                          </SidebarMenuButton>
+                        </Link>
+                      </SidebarMenuItem>
+                    </SidebarMenu>
+                  </SidebarGroup>
+                </>
+              )
+            );
+          })()}
         </SidebarContent>
         <div className="px-2">
           <Separator />

@@ -14,13 +14,18 @@ export const getPasswordStrength = (password: string) => {
   const hasUpper = /[A-Z]/.test(password);
   const hasNumber = /\d/.test(password);
   const hasSymbol = /[^A-Za-z\d]/.test(password);
+  const passwordLongEnough = password.length > 7;
 
-  const score = [hasLower, hasUpper, hasNumber, hasSymbol].filter(
-    Boolean,
-  ).length;
+  const score = [
+    hasLower,
+    hasUpper,
+    hasNumber,
+    hasSymbol,
+    passwordLongEnough,
+  ].filter(Boolean).length;
 
   if (score <= 1) return "weak";
-  if (score <= 3) return "medium";
+  if (score <= 4) return "medium";
   return "strong";
 };
 

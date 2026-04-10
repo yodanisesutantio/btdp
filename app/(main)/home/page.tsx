@@ -12,8 +12,48 @@ import {
   Proportions,
   Sheet,
 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { toast } from "sonner";
 
 export default function Home() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <HomeInnerPageContent />
+    </Suspense>
+  );
+}
+
+function HomeInnerPageContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const msg = searchParams.get("message");
+    const url = new URL(window.location.href);
+
+    switch (msg) {
+      case "not-authenticated":
+        toast.error("You must be logged in to access this page!", {
+          position: "top-right",
+        });
+
+        url.searchParams.delete("message");
+        router.replace(url.pathname);
+        break;
+      case "not-authorized":
+        toast.error("Only Administrators can access this page!", {
+          position: "top-right",
+        });
+
+        url.searchParams.delete("message");
+        router.replace(url.pathname);
+        break;
+      default:
+        break;
+    }
+  }, [searchParams, router]);
+
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections

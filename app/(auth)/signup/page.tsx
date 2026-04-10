@@ -31,6 +31,13 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (username === "administrator") {
+      toast.error("Invalid username", {
+        description: "The username 'administrator' is not allowed.",
+        position: "top-right",
+      });
+      return;
+    }
     if (
       !firstName ||
       !lastName ||

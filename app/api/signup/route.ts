@@ -10,6 +10,13 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    if (username === "administrator") {
+      return NextResponse.json(
+        { error: "The username 'administrator' is not allowed." },
+        { status: 400 },
+      );
+    }
+
     const { error } = await supabase.from("users").insert({
       first_name: firstName,
       last_name: lastName,

@@ -28,15 +28,27 @@ function SigninPageInnerContent() {
 
   useEffect(() => {
     const msg = searchParams.get("message");
+    const url = new URL(window.location.href);
 
-    if (msg === "not-authenticated") {
-      toast.error("You must be logged in to access this page!", {
-        position: "top-right",
-      });
+    switch (msg) {
+      case "not-authenticated":
+        toast.error("You must be logged in to access this page!", {
+          position: "top-right",
+        });
 
-      const url = new URL(window.location.href);
-      url.searchParams.delete("message");
-      router.replace(url.pathname);
+        url.searchParams.delete("message");
+        router.replace(url.pathname);
+        break;
+      case "not-authorized":
+        toast.error("Only Administrators can access this page!", {
+          position: "top-right",
+        });
+
+        url.searchParams.delete("message");
+        router.replace(url.pathname);
+        break;
+      default:
+        break;
     }
   }, [searchParams, router]);
 
