@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import SheetEditor from "@/components/sheet-editor";
-import { dummySheets, SheetsData } from "../page";
+import { SheetsData } from "../page";
 import type { IWorkbookData } from "@univerjs/presets";
 
 export default function SheetsEditorPage() {
@@ -13,6 +13,16 @@ export default function SheetsEditorPage() {
     </Suspense>
   );
 }
+
+export const dummySheets: SheetsData[] = [
+  {
+    title: "My First Sheet",
+    labels: "Personal",
+    slug: "my-first-sheet",
+    createdBy: "Random User",
+    createdAt: "2023-01-01",
+  },
+];
 
 function SheetsEditorPageInnerContent() {
   const searchParams = useSearchParams();
