@@ -1,7 +1,9 @@
 "use client";
 
 import { NotesPreviewCard } from "@/components/app-card";
+import { CreatableSelect } from "@/components/app-creatable-select";
 import { DialogStickyFooter } from "@/components/app-sticky-footer-dialog";
+import { SwitchWithState } from "@/components/app-switch";
 import { InBetweenSections, PageTitleSections } from "@/components/sections";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +14,7 @@ import {
   EmptyDescription,
   EmptyContent,
 } from "@/components/ui/empty";
-import { FieldGroup, FieldLabel, FieldSet } from "@/components/ui/field";
+import { FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Menubar,
@@ -26,6 +28,7 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { slugify } from "@/lib/helper";
 import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -37,6 +40,7 @@ export interface SheetsData {
   slug?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   content?: any;
+  public?: boolean;
   createdBy?: string;
   createdAt?: string;
 }
@@ -46,6 +50,7 @@ const emptySheets: SheetsData = {
   title: "",
   labels: "",
   slug: "",
+  public: true,
   content: "",
   createdBy: "",
   createdAt: "",
@@ -78,6 +83,8 @@ export default function SheetsPage() {
     setOpenDialog(false);
     setSelectedSheet(null);
   };
+
+  console.log(selectedSheet);
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
@@ -239,10 +246,37 @@ export default function SheetsPage() {
                   setSelectedSheet({
                     ...selectedSheet,
                     title: e.target.value,
+                    slug: slugify(e.target.value),
                   })
                 }
                 required
               />
+            </div>
+            <div className="flex flex-row gap-5">
+              <div className="flex flex-col gap-2">
+                <FieldLabel htmlFor="title">Labels</FieldLabel>
+                <CreatableSelect
+                  value={selectedSheet?.labels}
+                  onChange={(value) =>
+                    setSelectedSheet({ ...selectedSheet, labels: value })
+                  }
+                  className="w-48"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <FieldLabel htmlFor="title">Public</FieldLabel>
+                <div className="flex items-center space-x-2 h-[36px]">
+                  <SwitchWithState
+                    id="sheet-public"
+                    name="sheet-public"
+                    size={`lg`}
+                    checked={selectedSheet?.public ? true : false}
+                    onChange={(val) =>
+                      setSelectedSheet({ ...selectedSheet, public: val })
+                    }
+                  />
+                </div>
+              </div>
             </div>
           </FieldSet>
         }

@@ -23,7 +23,9 @@ export function DialogStickyFooter(props: DialogStickyFooterProps) {
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{props.dialogTitle ?? "Sticky Footer"}</DialogTitle>
+          <DialogTitle className={`text-xl`}>
+            {props.dialogTitle ?? "Sticky Footer"}
+          </DialogTitle>
           {props.dialogDescription && (
             <DialogDescription>{props.dialogDescription}</DialogDescription>
           )}
