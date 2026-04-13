@@ -26,6 +26,7 @@ export interface CreatableSelectProps {
   value?: string;
   onChange: (val: string) => void;
   className?: string;
+  required?: boolean;
 }
 
 export function CreatableSelect(props: CreatableSelectProps) {

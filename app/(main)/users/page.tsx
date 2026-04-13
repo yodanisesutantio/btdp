@@ -100,6 +100,7 @@ export default function UsersPage() {
         description: data.error,
         position: "top-right",
       });
+      console.error(data.error);
       return;
     }
 
@@ -120,6 +121,7 @@ export default function UsersPage() {
         description: data.error,
         position: "top-right",
       });
+      console.error(data.error);
       return;
     }
     setUsers((prev) => prev.filter((u) => u.username !== user.username));

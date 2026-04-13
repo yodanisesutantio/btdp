@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getConfirmStatus, getPasswordStrength } from "@/lib/helper";
@@ -26,12 +26,31 @@ export default function RegisterPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [dots, setDots] = useState("");
+
   const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setDots((prev) => {
+        if (prev === "...") return "";
+        return prev + ".";
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [loading]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     if (username === "administrator") {
+      setLoading(false);
       toast.error("Invalid username", {
         description: "The username 'administrator' is not allowed.",
         position: "top-right",
@@ -46,6 +65,7 @@ export default function RegisterPage() {
       !password ||
       !confirmPassword
     ) {
+      setLoading(false);
       toast.error("Please fill in all fields", {
         description: "All fields are required.",
         position: "top-right",
@@ -54,6 +74,7 @@ export default function RegisterPage() {
     }
 
     if (password.length < 8) {
+      setLoading(false);
       toast.error("Password is too short", {
         description: "Password must be at least 8 characters long.",
         position: "top-right",
@@ -62,6 +83,7 @@ export default function RegisterPage() {
     }
 
     if (passwordStrength !== "strong") {
+      setLoading(false);
       toast.error("Password is not strong enough", {
         description:
           "Password must be at least 8 characters long and contain a mix of letters, numbers, and special characters.",
@@ -71,6 +93,7 @@ export default function RegisterPage() {
     }
 
     if (password !== confirmPassword) {
+      setLoading(false);
       toast.error("Passwords do not match", {
         description: "Please ensure both password fields are identical.",
         position: "top-right",
@@ -95,12 +118,16 @@ export default function RegisterPage() {
     const data = await res.json();
 
     if (!res.ok) {
+      setLoading(false);
       toast.error("Registration failed!", {
         description: data.error,
         position: "top-right",
       });
+      console.error(data.error);
       return;
     }
+
+    setLoading(false);
 
     toast.success("Registration successful!", {
       description: "You can now log in with your new account.",
@@ -247,7 +274,7 @@ export default function RegisterPage() {
             </FieldSet>
             <div className="flex flex-col gap-2 mt-8">
               <Button type="submit" className="w-full cursor-pointer">
-                Sign Up
+                {loading ? `Signing up${dots}` : "Sign Up"}
               </Button>
               <span className="text-sm text-center text-muted-foreground">
                 Already have an account?{" "}

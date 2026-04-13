@@ -25,8 +25,6 @@ export function SwitchWithState(props: SwitchWithStateProps) {
     props.onChange?.(val, val);
   };
 
-  console.log(props.checked);
-
   return (
     <>
       <Switch

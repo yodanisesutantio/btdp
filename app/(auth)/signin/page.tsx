@@ -22,6 +22,8 @@ function SigninPageInnerContent() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [dots, setDots] = useState("");
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -52,8 +54,22 @@ function SigninPageInnerContent() {
     }
   }, [searchParams, router]);
 
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setDots((prev) => {
+        if (prev === "...") return "";
+        return prev + ".";
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
     const res = await fetch("/api/signin", {
       method: "POST",
@@ -64,15 +80,18 @@ function SigninPageInnerContent() {
     const data = await res.json();
 
     if (!res.ok) {
+      setLoading(false);
       toast.error("Login failed", {
         description: data.error,
         position: "top-right",
       });
+      console.error(data.error);
       return;
     }
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
+    setLoading(false);
 
     toast.success("Logged in successfully!", { position: "top-right" });
     setTimeout(() => {
@@ -140,7 +159,7 @@ function SigninPageInnerContent() {
             </div>
             <div className="flex flex-col gap-2">
               <Button type="submit" className="w-full cursor-pointer">
-                Sign In
+                {loading ? `Signing in${dots}` : "Sign In"}
               </Button>
               <span className="text-sm text-center text-muted-foreground">
                 Don&apos;t have an account?{" "}

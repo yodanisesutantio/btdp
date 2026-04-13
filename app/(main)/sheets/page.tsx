@@ -28,10 +28,12 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { Textarea } from "@/components/ui/textarea";
 import { slugify } from "@/lib/helper";
 import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export interface SheetsData {
   imagePreview?: string;
@@ -41,6 +43,7 @@ export interface SheetsData {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   content?: any;
   public?: boolean;
+  description?: string;
   createdBy?: string;
   createdAt?: string;
 }
@@ -51,6 +54,7 @@ const emptySheets: SheetsData = {
   labels: "",
   slug: "",
   public: true,
+  description: "",
   content: "",
   createdBy: "",
   createdAt: "",
@@ -73,6 +77,9 @@ export default function SheetsPage() {
   );
   const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [dots, setDots] = useState("");
+
+  const user = localStorage.getItem("user");
 
   const openDialogCreateSheet = () => {
     setOpenDialog(true);
@@ -84,7 +91,54 @@ export default function SheetsPage() {
     setSelectedSheet(null);
   };
 
-  console.log(selectedSheet);
+  useEffect(() => {
+    if (!loading) return;
+
+    const interval = setInterval(() => {
+      setDots((prev) => {
+        if (prev === "...") return "";
+        return prev + ".";
+      });
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [loading]);
+
+  const handleSaveSheets = async (selectedSheet: SheetsData) => {
+    setLoading(true);
+    const userObj = user ? JSON.parse(user) : null;
+
+    const res = await fetch("/api/sheets/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: selectedSheet.title,
+        slug: selectedSheet.slug,
+        description: selectedSheet.description ?? "",
+        public: selectedSheet.public,
+        labels: selectedSheet.labels ?? "",
+        content: {},
+        created_by: userObj.uuid,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setOpenDialog(false);
+    toast.success("Sheet created successfully", { position: "top-right" });
+  };
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
@@ -236,7 +290,9 @@ export default function SheetsPage() {
         content={
           <FieldSet>
             <div className="flex flex-col gap-2">
-              <FieldLabel htmlFor="title">Sheets Title</FieldLabel>
+              <FieldLabel htmlFor="title" className="gap-0">
+                Sheets Title<span className="text-red-500">*</span>
+              </FieldLabel>
               <Input
                 id="title"
                 type="text"
@@ -250,6 +306,20 @@ export default function SheetsPage() {
                   })
                 }
                 required
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <FieldLabel htmlFor="description">Sheets Description</FieldLabel>
+              <Textarea
+                id="description"
+                placeholder="e.g. December Budget"
+                value={selectedSheet?.description}
+                onChange={(e) =>
+                  setSelectedSheet({
+                    ...selectedSheet,
+                    description: e.target.value,
+                  })
+                }
               />
             </div>
             <div className="flex flex-row gap-5">
@@ -274,6 +344,7 @@ export default function SheetsPage() {
                     onChange={(val) =>
                       setSelectedSheet({ ...selectedSheet, public: val })
                     }
+                    className="cursor-pointer"
                   />
                 </div>
               </div>
@@ -289,7 +360,14 @@ export default function SheetsPage() {
             >
               Discard
             </Button>
-            <Button className="cursor-pointer">Save</Button>
+            <Button
+              className="cursor-pointer"
+              onClick={() => {
+                handleSaveSheets(selectedSheet ?? {});
+              }}
+            >
+              {loading ? `Saving${dots}` : "Save"}
+            </Button>
           </div>
         }
       />
