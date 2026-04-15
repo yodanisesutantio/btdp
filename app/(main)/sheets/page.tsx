@@ -104,6 +104,39 @@ export default function SheetsPage() {
     return () => clearInterval(interval);
   }, [loading]);
 
+  const fetchSheetsList = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/sheets/list", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoading(false);
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+        console.error(data.error);
+        return;
+      }
+      setSheets(data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSheetsList();
+  }, []);
+
   const handleSaveSheets = async (selectedSheet: SheetsData) => {
     setLoading(true);
     const userObj = user ? JSON.parse(user) : null;
@@ -168,6 +201,19 @@ export default function SheetsPage() {
       />
 
       <InBetweenSections className="gap-4">
+        <div className="col-span-12">
+          <div className="flex justify-end w-full mb-2">
+            <Button
+              onClick={fetchSheetsList}
+              disabled={loading}
+              size="sm"
+              className={`cursor-pointer`}
+              variant={`outline`}
+            >
+              {loading ? "Refreshing..." : "Refetch Sheets"}
+            </Button>
+          </div>
+        </div>
         {sheets.length > 0 ? (
           sheets.map((sheet, index) => (
             <Link
@@ -177,10 +223,11 @@ export default function SheetsPage() {
             >
               <NotesPreviewCard
                 key={index}
-                notes={{
+                data={{
                   title: sheet.title,
                   labels: sheet.labels,
                   slug: sheet.slug,
+                  description: sheet.description,
                   createdBy: sheet.createdBy,
                   createdAt: sheet.createdAt,
                 }}

@@ -143,6 +143,7 @@ export default function UsersPage() {
               disabled={loading}
               size="sm"
               className={`cursor-pointer`}
+              variant={`outline`}
             >
               {loading ? "Refreshing..." : "Refetch Users"}
             </Button>

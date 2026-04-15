@@ -1,6 +1,5 @@
 "use client";
 
-import { NotesData } from "@/app/(main)/notes/page";
 import { Badge } from "./ui/badge";
 import {
   Card,
@@ -18,17 +17,18 @@ export interface AppCardProps {
   cardFooterClassName?: string;
 }
 
-export interface NotesPreviewCardProps extends AppCardProps {
-  notes?: NotesData;
+export interface NotesPreviewCardProps<T> extends AppCardProps {
+  data?: T;
   cardMenubar?: React.ReactElement;
 }
 
-export function NotesPreviewCard(props: NotesPreviewCardProps) {
+export function NotesPreviewCard<T>(props: NotesPreviewCardProps<T>) {
   return (
     <>
-      {props.notes && (
+      {props.data && (
         <Card
-          key={props.notes.slug}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          key={(props.data as any).slug}
           className={`group relative mx-auto w-full pt-0 ${props.className ?? ""}`}
         >
           <div className="absolute inset-0 z-30 aspect-video bg-black/35" />
@@ -38,7 +38,11 @@ export function NotesPreviewCard(props: NotesPreviewCardProps) {
             </div>
           )}
           <Image
-            src={props.notes.imagePreview ?? "https://avatar.vercel.sh/shadcn1"}
+            src={
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              (props.data as any).imagePreview ??
+              "https://avatar.vercel.sh/shadcn1"
+            }
             alt="Event cover"
             className="relative z-20 aspect-video w-full object-cover brightness-60 grayscale dark:brightness-40"
             width={800}
@@ -48,38 +52,49 @@ export function NotesPreviewCard(props: NotesPreviewCardProps) {
             <CardAction>
               <Badge variant="secondary">
                 {(() => {
-                  const s = Array.isArray(props.notes.labels)
-                    ? props.notes.labels.join(", ")
-                    : String(props.notes.labels ?? "");
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const s = Array.isArray((props.data as any).labels)
+                    ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      (props.data as any).labels.join(", ")
+                    : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      String((props.data as any).labels ?? "");
                   return s.length > 16 ? `${s.slice(0, 16)}...` : s;
                 })()}
               </Badge>
             </CardAction>
             <CardTitle className="w-full truncate">
-              {props.notes.title}
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(props.data as any).title}
             </CardTitle>
           </CardHeader>
-          <CardDescription className="px-6"></CardDescription>
+          <CardDescription className="px-4 line-clamp-3 text-xs">
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {(props.data as any).description}
+          </CardDescription>
           <CardFooter
             className={`gap-3 text-xs ${props.cardFooterClassName ?? ""}`}
           >
             <div className="flex w-full justify-between">
               <div className="flex flex-col max-w-1/2 gap-1">
                 <p>Created By:</p>
-                <p className="w-full truncate">{props.notes.createdBy}</p>
+                <p className="w-full truncate">
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {(props.data as any).createdBy}
+                </p>
               </div>
               <div className="flex flex-col max-w-1/2 gap-1 text-end">
                 <p>Created At:</p>
                 <p className="w-full truncate">
-                  {props.notes.createdAt
-                    ? new Date(props.notes.createdAt).toLocaleDateString(
-                        undefined,
-                        {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        },
-                      )
+                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  {(props.data as any).createdAt
+                    ? new Date(
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (props.data as any).createdAt,
+                      ).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })
                     : ""}
                 </p>
               </div>
