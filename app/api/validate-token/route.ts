@@ -14,8 +14,13 @@ export async function POST(req: Request) {
 
   if (error || !data) return NextResponse.json({ valid: false });
 
-  const now = new Date();
-  const valid = !data.active_until || new Date(data.active_until) > now;
+  const now = Date.now();
+
+  const activeUntil = data.active_until
+    ? new Date(data.active_until.replace(" ", "T") + "Z").getTime()
+    : null;
+
+  const valid = !activeUntil || activeUntil > now;
 
   return NextResponse.json({ valid });
 }

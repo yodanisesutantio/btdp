@@ -23,6 +23,7 @@ export interface NotesPreviewCardProps<T> extends AppCardProps {
 }
 
 export function NotesPreviewCard<T>(props: NotesPreviewCardProps<T>) {
+  console.log(props?.data);
   return (
     <>
       {props.data && (
@@ -77,7 +78,17 @@ export function NotesPreviewCard<T>(props: NotesPreviewCardProps<T>) {
             <div className="flex w-full justify-between">
               <div className="flex flex-col max-w-1/2 gap-1">
                 <p>Created By:</p>
-                <p className="w-full truncate">
+                <p className="w-full flex flex-row items-center gap-2 truncate">
+                  <Image
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    src={`https://ui-avatars.com/api/?name=${`${(props.data as any).createdByFirstName || ""} ${(props.data as any).createdByLastName || ""}`.trim()}`}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    alt={(props.data as any).createdBy}
+                    className="rounded-full w-6 h-6 shrink-0 object-cover cursor-pointer"
+                    width={12}
+                    height={12}
+                    unoptimized
+                  />
                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                   {(props.data as any).createdBy}
                 </p>

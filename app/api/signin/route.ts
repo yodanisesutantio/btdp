@@ -36,9 +36,11 @@ export async function POST(req: Request) {
     }
 
     const token = randomUUID();
+    const activeUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
 
     const { error: loginError } = await supabase.from("login_info").insert({
       user_uuid: userData.uuid,
+      active_until: activeUntil.toISOString(),
       token,
     });
 

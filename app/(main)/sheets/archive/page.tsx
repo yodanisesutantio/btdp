@@ -30,26 +30,100 @@ import {
   FolderCode,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { SheetsData } from "../page";
 
-export const tasks: SheetsData[] = [
-  // {
-  //   title: "My First Note",
-  //   labels: "Personal",
-  //   slug: "my-first-note",
-  //   createdBy: "Random User",
-  //   createdAt: "2023-01-01",
-  // },
-  // {
-  //   title: "My Second Note",
-  //   labels: "Private",
-  //   slug: "my-second-note",
-  //   createdBy: "John Doe",
-  //   createdAt: "2023-01-02",
-  // },
-];
-
 export default function ArchiveSheetsPage() {
+  const [archivedSheets, setArchivedSheets] = useState<SheetsData[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchSheetsList = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/sheets/archived-list", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoading(false);
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+        console.error(data.error);
+        return;
+      }
+      setArchivedSheets(data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSheetsList();
+  }, []);
+
+  const handleArchiveSheets = async (sheetUuid: string) => {
+    setLoading(true);
+
+    const res = await fetch("/api/sheets/archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uuid: sheetUuid,
+        archive: false,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setArchivedSheets((prev) => prev.filter((s) => s.uuid !== sheetUuid));
+    toast.success("Sheet archived successfully", { position: "top-right" });
+  };
+
+  const handleDeleteSheets = async (sheetUuid: string) => {
+    setLoading(true);
+    const res = await fetch("/api/sheets", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uuid: sheetUuid }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setArchivedSheets((prev) => prev.filter((s) => s.uuid !== sheetUuid));
+    toast.success("Sheet deleted successfully", { position: "top-right" });
+  };
+
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
@@ -65,21 +139,37 @@ export default function ArchiveSheetsPage() {
       />
 
       <InBetweenSections className="gap-4">
-        {tasks.length > 0 ? (
-          tasks.map((task, index) => (
+        <div className="col-span-12">
+          <div className="flex justify-end w-full mb-2">
+            <Button
+              onClick={fetchSheetsList}
+              disabled={loading}
+              size="sm"
+              className={`cursor-pointer`}
+              variant={`outline`}
+            >
+              {loading ? "Refreshing..." : "Reload Archived Sheets"}
+            </Button>
+          </div>
+        </div>
+        {archivedSheets.length > 0 ? (
+          archivedSheets.map((sheet, index) => (
             <Link
               key={index}
-              href={`/notes/editor?q=${task.slug}`}
+              href={`/sheets/editor?q=${sheet.slug}`}
               className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
             >
               <NotesPreviewCard
                 key={index}
-                notes={{
-                  title: task.title,
-                  labels: task.labels,
-                  slug: task.slug,
-                  createdBy: task.createdBy,
-                  createdAt: task.createdAt,
+                data={{
+                  title: sheet.title,
+                  labels: sheet.labels,
+                  slug: sheet.slug,
+                  description: sheet.description,
+                  createdBy: sheet.createdBy,
+                  createdByFirstName: sheet.createdByFirstName,
+                  createdByLastName: sheet.createdByLastName,
+                  createdAt: sheet.createdAt,
                 }}
                 className="gap-2 hover:bg-muted hover:ring-foreground transition-all duration-300"
                 cardMenubar={
@@ -96,15 +186,19 @@ export default function ArchiveSheetsPage() {
                       <MenubarContent>
                         <MenubarGroup>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
+                              handleArchiveSheets(sheet.uuid ?? "");
                             }}
                           >
                             Restore Sheets
                           </MenubarItem>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
+                              handleDeleteSheets(sheet.uuid ?? "");
                             }}
                             variant="destructive"
                           >
@@ -115,6 +209,7 @@ export default function ArchiveSheetsPage() {
                         <MenubarGroup>
                           <MenubarSub>
                             <MenubarSubTrigger
+                              className={`cursor-pointer`}
                               onClick={(e) => {
                                 e.preventDefault();
                               }}
@@ -124,6 +219,7 @@ export default function ArchiveSheetsPage() {
                             <MenubarSubContent>
                               <MenubarGroup>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}
@@ -131,6 +227,7 @@ export default function ArchiveSheetsPage() {
                                   Copy Link
                                 </MenubarItem>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}

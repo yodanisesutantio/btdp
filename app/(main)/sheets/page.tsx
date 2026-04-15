@@ -36,6 +36,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export interface SheetsData {
+  uuid?: string;
   imagePreview?: string;
   title?: string;
   labels?: string;
@@ -45,10 +46,13 @@ export interface SheetsData {
   public?: boolean;
   description?: string;
   createdBy?: string;
+  createdByFirstName?: string;
+  createdByLastName?: string;
   createdAt?: string;
 }
 
 const emptySheets: SheetsData = {
+  uuid: "",
   imagePreview: "",
   title: "",
   labels: "",
@@ -57,18 +61,10 @@ const emptySheets: SheetsData = {
   description: "",
   content: "",
   createdBy: "",
+  createdByFirstName: "",
+  createdByLastName: "",
   createdAt: "",
 };
-
-// export const dummySheets: SheetsData[] = [
-//   {
-//     title: "My First Sheet",
-//     labels: "Personal",
-//     slug: "my-first-sheet",
-//     createdBy: "Random User",
-//     createdAt: "2023-01-01",
-//   },
-// ];
 
 export default function SheetsPage() {
   const [sheets, setSheets] = useState<SheetsData[]>([]);
@@ -173,6 +169,59 @@ export default function SheetsPage() {
     toast.success("Sheet created successfully", { position: "top-right" });
   };
 
+  const handleArchiveSheets = async (sheetUuid: string) => {
+    setLoading(true);
+
+    const res = await fetch("/api/sheets/archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uuid: sheetUuid,
+        archive: true,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setSheets((prev) => prev.filter((s) => s.uuid !== sheetUuid));
+    toast.success("Sheet archived successfully", { position: "top-right" });
+  };
+
+  const handleDeleteSheets = async (sheetUuid: string) => {
+    setLoading(true);
+    const res = await fetch("/api/sheets", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uuid: sheetUuid }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setSheets((prev) => prev.filter((s) => s.uuid !== sheetUuid));
+    toast.success("Sheet deleted successfully", { position: "top-right" });
+  };
+
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
@@ -210,7 +259,7 @@ export default function SheetsPage() {
               className={`cursor-pointer`}
               variant={`outline`}
             >
-              {loading ? "Refreshing..." : "Refetch Sheets"}
+              {loading ? "Refreshing..." : "Reload Sheets"}
             </Button>
           </div>
         </div>
@@ -229,6 +278,8 @@ export default function SheetsPage() {
                   slug: sheet.slug,
                   description: sheet.description,
                   createdBy: sheet.createdBy,
+                  createdByFirstName: sheet.createdByFirstName,
+                  createdByLastName: sheet.createdByLastName,
                   createdAt: sheet.createdAt,
                 }}
                 className="gap-2 hover:bg-muted hover:ring-foreground transition-all duration-300"
@@ -246,15 +297,19 @@ export default function SheetsPage() {
                       <MenubarContent>
                         <MenubarGroup>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
+                              handleArchiveSheets(sheet.uuid ?? "");
                             }}
                           >
                             Archive
                           </MenubarItem>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
+                              handleDeleteSheets(sheet.uuid ?? "");
                             }}
                             variant="destructive"
                           >
@@ -265,6 +320,7 @@ export default function SheetsPage() {
                         <MenubarGroup>
                           <MenubarSub>
                             <MenubarSubTrigger
+                              className={`cursor-pointer`}
                               onClick={(e) => {
                                 e.preventDefault();
                               }}
@@ -274,6 +330,7 @@ export default function SheetsPage() {
                             <MenubarSubContent>
                               <MenubarGroup>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}
@@ -281,6 +338,7 @@ export default function SheetsPage() {
                                   Copy Link
                                 </MenubarItem>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}

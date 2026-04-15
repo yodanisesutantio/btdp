@@ -11,7 +11,7 @@ export async function GET() {
       user:created_by (username, first_name, last_name)
     `,
     )
-    .eq("archive", false)
+    .eq("archive", true)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
