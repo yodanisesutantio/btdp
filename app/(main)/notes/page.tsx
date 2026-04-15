@@ -96,7 +96,7 @@ export default function NotesPage() {
             >
               <NotesPreviewCard
                 key={index}
-                notes={{
+                data={{
                   title: note.title,
                   labels: note.labels,
                   slug: note.slug,

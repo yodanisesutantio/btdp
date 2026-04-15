@@ -74,7 +74,7 @@ export default function ArchiveNotesPage() {
             >
               <NotesPreviewCard
                 key={index}
-                notes={{
+                data={{
                   title: note.title,
                   labels: note.labels,
                   slug: note.slug,

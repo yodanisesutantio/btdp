@@ -236,7 +236,7 @@ export default function TasksPage() {
             >
               <NotesPreviewCard
                 key={index}
-                notes={{
+                data={{
                   title: board.title,
                   labels: board.labels,
                   slug: board.slug,
