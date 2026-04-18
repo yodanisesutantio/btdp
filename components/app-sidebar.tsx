@@ -95,14 +95,16 @@ export function AppSidebar(props: AppSidebarProps) {
                 return (
                   <Tooltip>
                     <TooltipTrigger className={`shrink-0`}>
-                      <Image
-                        src={`https://ui-avatars.com/api/?name=${`${userObj?.first_name || ""} ${userObj?.last_name || ""}`.trim()}`}
-                        alt={`${userObj?.username || ""}`}
-                        className="rounded-full w-8 h-8 shrink-0 object-cover cursor-pointer"
-                        width={24}
-                        height={24}
-                        unoptimized
-                      />
+                      <Link href={`/profile`}>
+                        <Image
+                          src={`https://ui-avatars.com/api/?name=${`${userObj?.first_name || ""} ${userObj?.last_name || ""}`.trim()}`}
+                          alt={`${userObj?.username || ""}`}
+                          className="rounded-full w-8 h-8 shrink-0 object-cover cursor-pointer"
+                          width={24}
+                          height={24}
+                          unoptimized
+                        />
+                      </Link>
                     </TooltipTrigger>
                     <TooltipContent>
                       {userObj?.first_name} {userObj?.last_name}

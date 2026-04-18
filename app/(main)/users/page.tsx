@@ -37,6 +37,7 @@ export interface UserData {
   last_name?: string;
   username?: string;
   date_of_birth?: string;
+  password?: string;
 }
 
 export default function UsersPage() {
