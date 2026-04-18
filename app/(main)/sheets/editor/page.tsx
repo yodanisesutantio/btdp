@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import SheetEditor from "@/components/sheet-editor";
 import { SheetsData } from "../page";
 import type { IWorkbookData } from "@univerjs/presets";
@@ -14,33 +14,73 @@ export default function SheetsEditorPage() {
   );
 }
 
-export const dummySheets: SheetsData[] = [
-  {
-    title: "My First Sheet",
-    labels: "Personal",
-    slug: "my-first-sheet",
-    createdBy: "Random User",
-    createdAt: "2023-01-01",
-  },
-];
-
 function SheetsEditorPageInnerContent() {
   const searchParams = useSearchParams();
-  const slug = searchParams.get("q");
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const uuid = searchParams.get("id");
 
-  const [sheets, setSheetsContent] = useState<SheetsData | undefined>(
-    dummySheets?.find((s) => s.slug === slug),
-  );
+  const [sheets, setSheetsContent] = useState<SheetsData | undefined>();
 
-  const workbookData: IWorkbookData | undefined = sheets?.content;
+  useEffect(() => {
+    if (!uuid) return;
+
+    const fetchSheet = async () => {
+      const res = await fetch(`/api/sheets?id=${uuid}`);
+      const json = await res.json();
+
+      if (json?.data) {
+        setSheetsContent(json.data);
+      }
+    };
+
+    fetchSheet();
+  }, [uuid]);
+
+  const workbookData: IWorkbookData | undefined = (() => {
+    try {
+      return sheets?.content ? JSON.parse(sheets.content) : undefined;
+    } catch {
+      return undefined;
+    }
+  })();
 
   const handleWorkbookChange = (data: IWorkbookData) => {
-    console.log("Workbook updated:", data);
-
     setSheetsContent((prev) => (prev ? { ...prev, content: data } : prev));
+
+    if (!uuid) return;
+
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+    }
+
+    saveTimeout.current = setTimeout(async () => {
+      try {
+        await fetch("/api/sheets", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uuid,
+            content: data,
+          }),
+        });
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      }
+    }, 600);
   };
 
-  if (!sheets) return <div>Sheet not found</div>;
+  useEffect(() => {
+    return () => {
+      if (saveTimeout.current) {
+        clearTimeout(saveTimeout.current);
+      }
+    };
+  }, []);
+
+  if (!uuid) return <div>Invalid URL</div>;
+  if (!sheets) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans">

@@ -267,7 +267,7 @@ export default function SheetsPage() {
           sheets.map((sheet, index) => (
             <Link
               key={index}
-              href={`/sheets/editor?q=${sheet.slug}`}
+              href={`/sheets/editor?q=${sheet.slug}&id=${sheet.uuid}`}
               className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
             >
               <NotesPreviewCard
