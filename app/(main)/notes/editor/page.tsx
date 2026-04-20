@@ -3,13 +3,13 @@
 import { SectionsWrapper } from "@/components/sections";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
-import { dummyNotes, NotesData } from "../page";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { NotesData } from "../page";
 import { Separator } from "@/components/ui/separator";
 import { Plate, usePlateEditor } from "platejs/react";
 import { Editor, EditorContainer } from "@/components/ui/editor";
 import { EditorKit } from "@/components/editor/editor-kit";
-import { slugify } from "@/lib/helper";
+import { normalizeContent, slugify } from "@/lib/helper";
 import { CreatableSelect } from "@/components/app-creatable-select";
 
 export default function NotesEditorPage() {
@@ -23,15 +23,29 @@ export default function NotesEditorPage() {
 function NotesEditorPageInnerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const slug = searchParams.get("q");
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const uuid = searchParams.get("id");
+
+  const [notes, setNotesContent] = useState<NotesData | undefined>();
 
   const editor = usePlateEditor({
     plugins: EditorKit,
   });
 
-  const [notes, setNotesContent] = useState<NotesData | undefined>(
-    dummyNotes?.find((n) => n.slug === slug),
-  );
+  useEffect(() => {
+    if (!uuid) return;
+
+    const fetchNotes = async () => {
+      const res = await fetch(`/api/notes?id=${uuid}`);
+      const json = await res.json();
+
+      if (json?.data) {
+        setNotesContent(json.data);
+      }
+    };
+
+    fetchNotes();
+  }, [uuid]);
 
   const handleTitleChange = (value: string) => {
     setNotesContent({ ...notes, title: value });
@@ -44,6 +58,58 @@ function NotesEditorPageInnerContent() {
       router.replace(`/notes`);
     }
   };
+
+  const lastSaved = useRef<string>("");
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleNotesChange = (data: any) => {
+    const json = JSON.stringify(data);
+
+    if (json === lastSaved.current) return;
+
+    setNotesContent((prev) => (prev ? { ...prev, content: data } : prev));
+
+    if (!uuid) return;
+
+    if (saveTimeout.current) {
+      clearTimeout(saveTimeout.current);
+    }
+
+    saveTimeout.current = setTimeout(async () => {
+      console.log(data);
+      try {
+        await fetch("/api/notes", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uuid, content: data }),
+        });
+
+        lastSaved.current = json;
+      } catch (err) {
+        console.error("Autosave failed:", err);
+      }
+    }, 600);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (saveTimeout.current) {
+        clearTimeout(saveTimeout.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!notes) return;
+
+    const safeValue = normalizeContent(notes.content);
+
+    editor.tf.setValue(safeValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notes?.uuid]);
+
+  if (!uuid) return <div>Invalid URL</div>;
+  if (!notes) return <div>Loading...</div>;
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
@@ -77,7 +143,7 @@ function NotesEditorPageInnerContent() {
         <Plate
           editor={editor}
           onChange={({ value }) => {
-            console.log(value);
+            handleNotesChange(value);
           }}
         >
           <EditorContainer>

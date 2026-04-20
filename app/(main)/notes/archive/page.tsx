@@ -30,26 +30,100 @@ import {
   FolderCode,
 } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { NotesData } from "../page";
-
-const notes: NotesData[] = [
-  // {
-  //   title: "My First Note",
-  //   labels: "Personal",
-  //   slug: "my-first-note",
-  //   createdBy: "Random User",
-  //   createdAt: "2023-01-01",
-  // },
-  // {
-  //   title: "My Second Note",
-  //   labels: "Private",
-  //   slug: "my-second-note",
-  //   createdBy: "John Doe",
-  //   createdAt: "2023-01-02",
-  // },
-];
+import { toast } from "sonner";
 
 export default function ArchiveNotesPage() {
+  const [archivedNotes, setArchivedNotes] = useState<NotesData[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchNotesList = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/notes/archived-list", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoading(false);
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+        console.error(data.error);
+        return;
+      }
+      setArchivedNotes(data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotesList();
+  }, []);
+
+  const handleArchiveNotes = async (noteUuid: string) => {
+    setLoading(true);
+
+    const res = await fetch("/api/notes/archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uuid: noteUuid,
+        archive: false,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setArchivedNotes((prev) => prev.filter((s) => s.uuid !== noteUuid));
+    toast.success("Note archived successfully", { position: "top-right" });
+  };
+
+  const handleDeleteNotes = async (noteUuid: string) => {
+    setLoading(true);
+    const res = await fetch("/api/notes", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uuid: noteUuid }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setArchivedNotes((prev) => prev.filter((s) => s.uuid !== noteUuid));
+    toast.success("Note deleted successfully", { position: "top-right" });
+  };
+
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
@@ -65,8 +139,21 @@ export default function ArchiveNotesPage() {
       />
 
       <InBetweenSections className="gap-4">
-        {notes.length > 0 ? (
-          notes.map((note, index) => (
+        <div className="col-span-12">
+          <div className="flex justify-end w-full mb-2">
+            <Button
+              onClick={fetchNotesList}
+              disabled={loading}
+              size="sm"
+              className={`cursor-pointer`}
+              variant={`outline`}
+            >
+              {loading ? "Refreshing..." : "Reload Archived Notes"}
+            </Button>
+          </div>
+        </div>
+        {archivedNotes.length > 0 ? (
+          archivedNotes.map((note, index) => (
             <Link
               key={index}
               href={`/notes/editor?q=${note.slug}`}
@@ -96,15 +183,19 @@ export default function ArchiveNotesPage() {
                       <MenubarContent>
                         <MenubarGroup>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
+                              handleArchiveNotes(note.uuid ?? "");
                             }}
                           >
                             Restore Notes
                           </MenubarItem>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
+                              handleDeleteNotes(note.uuid ?? "");
                             }}
                             variant="destructive"
                           >
@@ -124,6 +215,7 @@ export default function ArchiveNotesPage() {
                             <MenubarSubContent>
                               <MenubarGroup>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}
@@ -131,6 +223,7 @@ export default function ArchiveNotesPage() {
                                   Copy Link
                                 </MenubarItem>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}

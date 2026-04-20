@@ -33,3 +33,37 @@ export const getConfirmStatus = (password: string, confirm: string) => {
   if (!confirm) return "none";
   return password === confirm ? "match" : "mismatch";
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const normalizeContent = (content: any) => {
+  if (!content) {
+    return [
+      {
+        type: "p",
+        children: [{ text: "" }],
+      },
+    ];
+  }
+
+  if (typeof content === "string") {
+    try {
+      return JSON.parse(content);
+    } catch {
+      return [
+        {
+          type: "p",
+          children: [{ text: content }],
+        },
+      ];
+    }
+  }
+
+  if (Array.isArray(content)) return content;
+
+  return [
+    {
+      type: "p",
+      children: [{ text: "" }],
+    },
+  ];
+};
