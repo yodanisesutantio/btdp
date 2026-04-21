@@ -52,6 +52,9 @@ export function AppCommand(props: AppCommandProps) {
               <CommandGroup heading="Features">
                 <Link
                   href="/tasks"
+                  onClick={() => {
+                    if (props.setOpen) props.setOpen(false);
+                  }}
                   className="flex flex-row items-center gap-2"
                 >
                   <CommandItem className="w-full cursor-pointer">
@@ -61,6 +64,9 @@ export function AppCommand(props: AppCommandProps) {
                 </Link>
                 <Link
                   href="/sheets"
+                  onClick={() => {
+                    if (props.setOpen) props.setOpen(false);
+                  }}
                   className="flex flex-row items-center gap-2"
                 >
                   <CommandItem className="w-full cursor-pointer">
@@ -70,6 +76,9 @@ export function AppCommand(props: AppCommandProps) {
                 </Link>
                 <Link
                   href="/timelines"
+                  onClick={() => {
+                    if (props.setOpen) props.setOpen(false);
+                  }}
                   className="flex flex-row items-center gap-2"
                 >
                   <CommandItem className="w-full cursor-pointer">
@@ -79,6 +88,9 @@ export function AppCommand(props: AppCommandProps) {
                 </Link>
                 <Link
                   href="/notes"
+                  onClick={() => {
+                    if (props.setOpen) props.setOpen(false);
+                  }}
                   className="flex flex-row items-center gap-2"
                 >
                   <CommandItem className="w-full cursor-pointer">
@@ -91,6 +103,9 @@ export function AppCommand(props: AppCommandProps) {
               <CommandGroup heading="Others">
                 <Link
                   href="/profile"
+                  onClick={() => {
+                    if (props.setOpen) props.setOpen(false);
+                  }}
                   className="flex flex-row items-center gap-2"
                 >
                   <CommandItem className="w-full cursor-pointer">
@@ -100,6 +115,9 @@ export function AppCommand(props: AppCommandProps) {
                 </Link>
                 <Link
                   href="/help"
+                  onClick={() => {
+                    if (props.setOpen) props.setOpen(false);
+                  }}
                   className="w-full flex flex-row items-center gap-2"
                 >
                   <CommandItem className="w-full cursor-pointer">
