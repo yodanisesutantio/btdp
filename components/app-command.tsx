@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Calendar,
-  Smile,
-  Calculator,
   User,
-  CreditCard,
-  Settings,
+  LayoutPanelLeft,
+  Sheet,
+  Blocks,
+  FileText,
+  HelpCircle,
 } from "lucide-react";
 import {
   Command,
@@ -20,6 +20,7 @@ import {
 } from "./ui/command";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect } from "react";
+import Link from "next/link";
 export interface AppCommandProps {
   open?: boolean;
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -48,37 +49,69 @@ export function AppCommand(props: AppCommandProps) {
             <CommandInput placeholder="Type a command or search..." />
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup heading="Suggestions">
-                <CommandItem>
-                  <Calendar />
-                  <span>Calendar</span>
-                </CommandItem>
-                <CommandItem>
-                  <Smile />
-                  <span>Search Emoji</span>
-                </CommandItem>
-                <CommandItem disabled>
-                  <Calculator />
-                  <span>Calculator</span>
-                </CommandItem>
+              <CommandGroup heading="Features">
+                <Link
+                  href="/tasks"
+                  className="flex flex-row items-center gap-2"
+                >
+                  <CommandItem className="w-full cursor-pointer">
+                    <LayoutPanelLeft />
+                    <span>Tasks Board</span>
+                  </CommandItem>
+                </Link>
+                <Link
+                  href="/sheets"
+                  className="flex flex-row items-center gap-2"
+                >
+                  <CommandItem className="w-full cursor-pointer">
+                    <Sheet />
+                    <span>Sheets</span>
+                  </CommandItem>
+                </Link>
+                <Link
+                  href="/timelines"
+                  className="flex flex-row items-center gap-2"
+                >
+                  <CommandItem className="w-full cursor-pointer">
+                    <Blocks />
+                    <span>Timelines</span>
+                  </CommandItem>
+                </Link>
+                <Link
+                  href="/notes"
+                  className="flex flex-row items-center gap-2"
+                >
+                  <CommandItem className="w-full cursor-pointer">
+                    <FileText />
+                    <span>Notes</span>
+                  </CommandItem>
+                </Link>
               </CommandGroup>
               <CommandSeparator />
-              <CommandGroup heading="Settings">
-                <CommandItem>
-                  <User />
-                  <span>Profile</span>
-                  <CommandShortcut>⌘P</CommandShortcut>
-                </CommandItem>
-                <CommandItem>
-                  <CreditCard />
-                  <span>Billing</span>
-                  <CommandShortcut>⌘B</CommandShortcut>
-                </CommandItem>
-                <CommandItem>
-                  <Settings />
-                  <span>Settings</span>
-                  <CommandShortcut>⌘S</CommandShortcut>
-                </CommandItem>
+              <CommandGroup heading="Others">
+                <Link
+                  href="/profile"
+                  className="flex flex-row items-center gap-2"
+                >
+                  <CommandItem className="w-full cursor-pointer">
+                    <User />
+                    <span>Profile</span>
+                  </CommandItem>
+                </Link>
+                <Link
+                  href="/help"
+                  className="w-full flex flex-row items-center gap-2"
+                >
+                  <CommandItem className="w-full cursor-pointer">
+                    <div className="w-full flex flex-row justify-between">
+                      <div className="flex flex-row gap-2">
+                        <HelpCircle />
+                        <span>Help</span>
+                      </div>
+                      <CommandShortcut>F1</CommandShortcut>
+                    </div>
+                  </CommandItem>
+                </Link>
               </CommandGroup>
             </CommandList>
           </Command>
