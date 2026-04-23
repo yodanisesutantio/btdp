@@ -30,6 +30,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
 
+    if (!userData.admittable) {
+      return NextResponse.json(
+        {
+          error:
+            "You are not allowed to sign in. Please contact devs to admit you to sign in.",
+        },
+        { status: 403 },
+      );
+    }
+
     const validPassword = await bcrypt.compare(password, userData.password);
     if (!validPassword) {
       return NextResponse.json({ error: "Invalid password." }, { status: 401 });
