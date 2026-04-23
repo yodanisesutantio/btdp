@@ -240,104 +240,106 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
-      <InBetweenSections className="gap-4">
-        <div className="col-span-12">
-          <h1 className="text-xl font-bold">Personal Information</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your personal details
-          </p>
-        </div>
-        <div className="col-span-12">
-          <FieldSet>
-            <div className="flex flex-row gap-5">
-              <div className="w-1/2 flex flex-col gap-2">
-                <FieldLabel htmlFor="first_name" className="gap-0">
-                  First Name<span className="text-red-500">*</span>
-                </FieldLabel>
-                <Input
-                  id="first_name"
-                  type="text"
-                  placeholder="e.g. December Budget"
-                  value={user?.first_name}
-                  onChange={(e) =>
-                    setUser({
-                      ...user,
-                      first_name: e.target.value,
-                    })
-                  }
-                  required
-                />
+      {user?.username !== "administrator" && (
+        <InBetweenSections className="gap-4">
+          <div className="col-span-12">
+            <h1 className="text-xl font-bold">Personal Information</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your personal details
+            </p>
+          </div>
+          <div className="col-span-12">
+            <FieldSet>
+              <div className="flex flex-row gap-5">
+                <div className="w-1/2 flex flex-col gap-2">
+                  <FieldLabel htmlFor="first_name" className="gap-0">
+                    First Name<span className="text-red-500">*</span>
+                  </FieldLabel>
+                  <Input
+                    id="first_name"
+                    type="text"
+                    placeholder="e.g. December Budget"
+                    value={user?.first_name}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        first_name: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div className="w-1/2 flex flex-col gap-2">
+                  <FieldLabel htmlFor="last_name" className="gap-0">
+                    Last Name<span className="text-red-500">*</span>
+                  </FieldLabel>
+                  <Input
+                    id="last_name"
+                    type="text"
+                    placeholder="e.g. December Budget"
+                    value={user?.last_name}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        last_name: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
               </div>
-              <div className="w-1/2 flex flex-col gap-2">
-                <FieldLabel htmlFor="last_name" className="gap-0">
-                  Last Name<span className="text-red-500">*</span>
-                </FieldLabel>
-                <Input
-                  id="last_name"
-                  type="text"
-                  placeholder="e.g. December Budget"
-                  value={user?.last_name}
-                  onChange={(e) =>
-                    setUser({
-                      ...user,
-                      last_name: e.target.value,
-                    })
-                  }
-                  required
-                />
+              <div className="flex flex-row gap-5">
+                <div className="w-1/2 flex flex-col gap-2">
+                  <FieldLabel htmlFor="username" className="gap-0">
+                    Username<span className="text-red-500">*</span>
+                  </FieldLabel>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="e.g. December Budget"
+                    value={user?.username}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        username: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+                <div className="w-1/2 flex flex-col gap-2">
+                  <FieldLabel htmlFor="date_of_birth" className="gap-0">
+                    Date of Birth<span className="text-red-500">*</span>
+                  </FieldLabel>
+                  <Input
+                    id="date_of_birth"
+                    type="text"
+                    placeholder="e.g. December Budget"
+                    value={user?.date_of_birth}
+                    onChange={(e) =>
+                      setUser({
+                        ...user,
+                        date_of_birth: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="flex flex-row gap-5">
-              <div className="w-1/2 flex flex-col gap-2">
-                <FieldLabel htmlFor="username" className="gap-0">
-                  Username<span className="text-red-500">*</span>
-                </FieldLabel>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="e.g. December Budget"
-                  value={user?.username}
-                  onChange={(e) =>
-                    setUser({
-                      ...user,
-                      username: e.target.value,
-                    })
-                  }
-                  required
-                />
+              <div className="flex justify-end w-full mb-2">
+                <Button
+                  className="cursor-pointer px-6"
+                  onClick={() => {
+                    if (user) handlePersonalInfo(user);
+                  }}
+                >
+                  {loading ? `Saving${dots}` : "Save"}
+                </Button>
               </div>
-              <div className="w-1/2 flex flex-col gap-2">
-                <FieldLabel htmlFor="date_of_birth" className="gap-0">
-                  Date of Birth<span className="text-red-500">*</span>
-                </FieldLabel>
-                <Input
-                  id="date_of_birth"
-                  type="text"
-                  placeholder="e.g. December Budget"
-                  value={user?.date_of_birth}
-                  onChange={(e) =>
-                    setUser({
-                      ...user,
-                      date_of_birth: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
-            </div>
-            <div className="flex justify-end w-full mb-2">
-              <Button
-                className="cursor-pointer px-6"
-                onClick={() => {
-                  if (user) handlePersonalInfo(user);
-                }}
-              >
-                {loading ? `Saving${dots}` : "Save"}
-              </Button>
-            </div>
-          </FieldSet>
-        </div>
-      </InBetweenSections>
+            </FieldSet>
+          </div>
+        </InBetweenSections>
+      )}
 
       <InBetweenSections className="gap-4">
         <div className="col-span-12">
@@ -365,23 +367,25 @@ export default function ProfilePage() {
               Change Password
             </Button>
           </div>
-          <div className="flex flex-row justify-between items-center">
-            <div className="flex flex-col">
-              <h2 className="font-semibold">Delete Account</h2>
-              <p className="text-xs text-muted-foreground">
-                To delete your account please press the button on the right.
-              </p>
+          {user?.username !== "administrator" && (
+            <div className="flex flex-row justify-between items-center">
+              <div className="flex flex-col">
+                <h2 className="font-semibold">Delete Account</h2>
+                <p className="text-xs text-muted-foreground">
+                  To delete your account please press the button on the right.
+                </p>
+              </div>
+              <Button
+                className="cursor-pointer px-6"
+                variant={`destructive`}
+                onClick={() => {
+                  setOpenConfirmationDialog(true);
+                }}
+              >
+                Delete Account
+              </Button>
             </div>
-            <Button
-              className="cursor-pointer px-6"
-              variant={`destructive`}
-              onClick={() => {
-                setOpenConfirmationDialog(true);
-              }}
-            >
-              Delete Account
-            </Button>
-          </div>
+          )}
         </div>
       </InBetweenSections>
 

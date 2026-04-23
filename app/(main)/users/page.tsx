@@ -179,23 +179,31 @@ export default function UsersPage() {
               {loading ? "Refreshing..." : "Refetch Users"}
             </Button>
           </div>
-          <Table>
+          <Table className="w-full table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead>Full Name</TableHead>
-                <TableHead>Username</TableHead>
-                <TableHead>Date of Birth</TableHead>
-                <TableHead>Active</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="!w-[36%]">Full Name</TableHead>
+                <TableHead className="!w-[30%]">Username</TableHead>
+                <TableHead className="!w-[16%]">Date of Birth</TableHead>
+                <TableHead className="!w-[10%]">Active</TableHead>
+                <TableHead className="text-center !w-[8%]">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {users.map((user, index) => (
                 <TableRow key={index}>
-                  <TableCell className="font-medium">{`${user.first_name} ${user.last_name}`}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.date_of_birth}</TableCell>
-                  <TableCell>
+                  <TableCell className="font-medium !w-[36%]">
+                    <div className="truncate">
+                      {`${user.first_name} ${user.last_name}`}
+                    </div>
+                  </TableCell>
+                  <TableCell className="!w-[30%]">
+                    <div className="truncate">{user.username}</div>
+                  </TableCell>
+                  <TableCell className="!w-[16%]">
+                    <div className="truncate">{user.date_of_birth}</div>
+                  </TableCell>
+                  <TableCell className="!w-[10%]">
                     <SwitchWithState
                       size={`lg`}
                       checked={user?.active ? true : false}
@@ -203,7 +211,7 @@ export default function UsersPage() {
                       className="cursor-pointer"
                     />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-center !w-[8%]">
                     {user.username !== "administrator" && (
                       <DropdownMenu>
                         <DropdownMenuTrigger className={`cursor-pointer`}>

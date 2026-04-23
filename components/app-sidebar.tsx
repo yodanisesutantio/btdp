@@ -22,6 +22,7 @@ import {
   Blocks,
   ChevronDown,
   FileText,
+  FolderTree,
   HelpCircle,
   Home,
   LayoutPanelLeft,
@@ -200,6 +201,22 @@ export function AppSidebar(props: AppSidebarProps) {
                           >
                             <Users strokeWidth={isActive("/users") ? 2.5 : 2} />
                             Users
+                          </SidebarMenuButton>
+                        </Link>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <Link href="/workspaces">
+                          <SidebarMenuButton
+                            className={
+                              isActive("/workspaces")
+                                ? "bg-muted font-semibold"
+                                : ""
+                            }
+                          >
+                            <FolderTree
+                              strokeWidth={isActive("/users") ? 2.5 : 2}
+                            />
+                            Workspaces
                           </SidebarMenuButton>
                         </Link>
                       </SidebarMenuItem>
