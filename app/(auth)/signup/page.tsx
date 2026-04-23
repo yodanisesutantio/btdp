@@ -234,8 +234,9 @@ export default function RegisterPage() {
                   <FieldDescription
                     className={`text-${passwordStrength === "weak" ? "red-500" : "orange-500"} text-xs`}
                   >
-                    Password must be at least 8 characters long and contain a
-                    mix of letters, numbers, and special characters.
+                    Password must be at least 8 characters long and include
+                    uppercase letters, lowercase letters, numbers, and special
+                    characters.
                   </FieldDescription>
                 )}
               </div>
