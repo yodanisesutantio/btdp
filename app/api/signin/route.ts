@@ -20,6 +20,7 @@ export async function POST(req: Request) {
       .from("users")
       .select("*")
       .eq("username", username)
+      .is("deleted_at", null)
       .maybeSingle();
 
     if (fetchError) {
