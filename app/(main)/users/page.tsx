@@ -31,12 +31,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { SwitchWithState } from "@/components/app-switch";
 
 export interface UserData {
   first_name?: string;
   last_name?: string;
   username?: string;
   date_of_birth?: string;
+  active?: boolean;
   password?: string;
 }
 
@@ -83,6 +85,34 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const handleSwitchActive = async (user: UserData, active: boolean) => {
+    const res = await fetch("/api/users/switch-active", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: user.username,
+        active,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+
+    fetchUsers();
+
+    toast.success("User status updated successfully", {
+      position: "top-right",
+    });
+  };
 
   const handleResetPassword = async (user: UserData) => {
     const res = await fetch("/api/users/reset-password", {
@@ -155,6 +185,7 @@ export default function UsersPage() {
                 <TableHead>Full Name</TableHead>
                 <TableHead>Username</TableHead>
                 <TableHead>Date of Birth</TableHead>
+                <TableHead>Active</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -164,6 +195,14 @@ export default function UsersPage() {
                   <TableCell className="font-medium">{`${user.first_name} ${user.last_name}`}</TableCell>
                   <TableCell>{user.username}</TableCell>
                   <TableCell>{user.date_of_birth}</TableCell>
+                  <TableCell>
+                    <SwitchWithState
+                      size={`lg`}
+                      checked={user?.active ? true : false}
+                      onChange={(val) => handleSwitchActive(user, val)}
+                      className="cursor-pointer"
+                    />
+                  </TableCell>
                   <TableCell className="text-right">
                     {user.username !== "administrator" && (
                       <DropdownMenu>
