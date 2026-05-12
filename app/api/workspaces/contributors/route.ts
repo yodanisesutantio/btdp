@@ -43,12 +43,26 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: data.map((item) => ({
+    const roleOrder: Record<string, number> = {
+      Owner: 1,
+      Admin: 2,
+      Editor: 3,
+      Contributor: 4,
+      Viewer: 5,
+    };
+
+    const formattedData = data
+      .map((item) => ({
         ...item.users,
         role: item.role,
-      })),
+      }))
+      .sort((a, b) => {
+        return roleOrder[a.role] - roleOrder[b.role];
+      });
+
+    return NextResponse.json({
+      success: true,
+      data: formattedData,
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
@@ -71,6 +85,41 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
+    if (role === "Owner") {
+      const { data: currentOwner, error: currentOwnerError } = await supabase
+        .from("workspaces_users")
+        .select("*")
+        .eq("workspace_uuid", workspace_uuid)
+        .eq("role", "Owner")
+        .single();
+
+      if (currentOwnerError) {
+        return NextResponse.json(
+          {
+            error: currentOwnerError.message,
+          },
+          { status: 400 },
+        );
+      }
+
+      const { error: downgradeError } = await supabase
+        .from("workspaces_users")
+        .update({
+          role: "Admin",
+        })
+        .eq("workspace_uuid", workspace_uuid)
+        .eq("user_uuid", currentOwner.user_uuid);
+
+      if (downgradeError) {
+        return NextResponse.json(
+          {
+            error: downgradeError.message,
+          },
+          { status: 400 },
+        );
+      }
+    }
+
     const { data, error } = await supabase
       .from("workspaces_users")
       .update({
@@ -82,7 +131,12 @@ export async function PATCH(req: NextRequest) {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: error.message,
+        },
+        { status: 400 },
+      );
     }
 
     return NextResponse.json({
@@ -91,7 +145,12 @@ export async function PATCH(req: NextRequest) {
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        error: err.message,
+      },
+      { status: 500 },
+    );
   }
 }
 

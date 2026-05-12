@@ -129,78 +129,104 @@ function WorkspaceContributorsPageInnerContent() {
     contributor: WorkspaceContributors,
     value: string,
   ) => {
-    if (value === "Owner") {
-      setSelectedUser(contributor);
-      setSelectedRole(value);
-      setOpenTransferOwnership(true);
-      return;
-    }
-    const res = await fetch("/api/workspaces/contributors", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        workspace_uuid: workspaceUuid,
-        user_uuid: contributor.uuid,
-        role: value,
-      }),
-    });
+    setLoading(true);
+    try {
+      if (value === "Owner") {
+        setSelectedUser(contributor);
+        setSelectedRole(value);
+        setOpenTransferOwnership(true);
+        return;
+      }
+      const res = await fetch("/api/workspaces/contributors", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspace_uuid: workspaceUuid,
+          user_uuid: contributor.uuid,
+          role: value,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      toast.error("Operation Failed!", {
-        description: data.error,
+      if (!res.ok) {
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+        console.error(data.error);
+        return;
+      }
+
+      fetchWorkspaceContributors();
+      toast.success("Contributor's Role is changed successfully", {
         position: "top-right",
       });
-      console.error(data.error);
-      return;
-    }
+    } catch (err) {
+      console.error(err);
 
-    fetchWorkspaceContributors();
-    toast.success("Contributor's Role is changed successfully", {
-      position: "top-right",
-    });
+      toast.error("Operation Failed!", {
+        description: "Something went wrong",
+        position: "top-right",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddContributor = async (user: UserData) => {
-    const res = await fetch("/api/workspaces/contributors", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        workspace_uuid: workspaceUuid,
-        user_uuid: user.uuid,
-      }),
-    });
+    setLoading(true);
 
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/workspaces/contributors", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspace_uuid: workspaceUuid,
+          user_uuid: user.uuid,
+        }),
+      });
 
-    if (!res.ok) {
-      toast.error("Operation Failed!", {
-        description: data.error,
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+
+        return;
+      }
+
+      toast.success("Contributor added successfully", {
         position: "top-right",
       });
 
-      return;
+      fetchWorkspaceContributors();
+
+      setQuery("");
+      setUsers([]);
+      setOpenContributorSearch(false);
+    } catch (err) {
+      console.error(err);
+
+      toast.error("Operation Failed!", {
+        description: "Something went wrong",
+        position: "top-right",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    toast.success("Contributor added successfully", {
-      position: "top-right",
-    });
-
-    fetchWorkspaceContributors();
-
-    setQuery("");
-    setUsers([]);
-    setOpenContributorSearch(false);
   };
 
   const handleDeleteContributor = async (
     contributor: WorkspaceContributors,
   ) => {
+    setLoading(true);
     try {
       const res = await fetch("/api/workspaces/contributors", {
         method: "DELETE",
@@ -235,9 +261,12 @@ function WorkspaceContributorsPageInnerContent() {
     } catch (err) {
       console.error(err);
 
-      toast.error("Something went wrong", {
+      toast.error("Operation Failed!", {
+        description: "Something went wrong",
         position: "top-right",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -245,36 +274,50 @@ function WorkspaceContributorsPageInnerContent() {
     selectedUser: WorkspaceContributors,
     selectedRole: string,
   ) => {
-    if (!selectedUser) return;
+    setLoading(true);
+    try {
+      if (!selectedUser) return;
 
-    const res = await fetch("/api/workspaces/contributors", {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        workspace_uuid: workspaceUuid,
-        user_uuid: selectedUser.uuid,
-        role: selectedRole,
-      }),
-    });
+      const res = await fetch("/api/workspaces/contributors", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspace_uuid: workspaceUuid,
+          user_uuid: selectedUser.uuid,
+          role: selectedRole,
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (!res.ok) {
-      toast.error("Operation Failed!", {
-        description: data.error,
+      if (!res.ok) {
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+
+        return;
+      }
+
+      fetchWorkspaceContributors();
+
+      toast.success("Workspace ownership transferred successfully", {
         position: "top-right",
       });
 
-      return;
+      setOpenTransferOwnership(false);
+    } catch (err) {
+      console.error(err);
+
+      toast.error("Operation Failed!", {
+        description: "Something went wrong",
+        position: "top-right",
+      });
+    } finally {
+      setLoading(false);
     }
-
-    toast.success("Workspace ownership transferred successfully", {
-      position: "top-right",
-    });
-
-    setOpenTransferOwnership(false);
   };
 
   useEffect(() => {
