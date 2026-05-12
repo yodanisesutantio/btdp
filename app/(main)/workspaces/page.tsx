@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import Link from "next/link";
 
 export interface WorkspaceData {
   uuid?: string;
@@ -187,6 +188,14 @@ export default function WorkspacesPage() {
         <div className="col-span-12">
           <div className="flex justify-end gap-2 w-full mb-2">
             <Button
+              onClick={openDialogCreateWorkspace}
+              disabled={loading}
+              size="sm"
+              className={`cursor-pointer`}
+            >
+              Add Workspace
+            </Button>
+            <Button
               onClick={fetchWorkspaces}
               disabled={loading}
               size="sm"
@@ -194,14 +203,6 @@ export default function WorkspacesPage() {
               variant={`outline`}
             >
               {loading ? "Refreshing..." : "Refetch Workspaces"}
-            </Button>
-            <Button
-              onClick={openDialogCreateWorkspace}
-              disabled={loading}
-              size="sm"
-              className={`cursor-pointer`}
-            >
-              Add Workspace
             </Button>
           </div>
           <Table className="w-full table-fixed">
@@ -245,12 +246,16 @@ export default function WorkspacesPage() {
                         >
                           Edit Workspace
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {}}
-                          className={`cursor-pointer`}
+                        <Link
+                          href={`/workspaces/contributors?q=${workspace.slug}&uuid=${workspace.uuid}`}
                         >
-                          Manage Contributors...
-                        </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {}}
+                            className={`cursor-pointer`}
+                          >
+                            Manage Contributors...
+                          </DropdownMenuItem>
+                        </Link>
 
                         <DropdownMenuSeparator />
 

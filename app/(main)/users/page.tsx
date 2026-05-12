@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { SwitchWithState } from "@/components/app-switch";
 
 export interface UserData {
+  uuid?: string;
   first_name?: string;
   last_name?: string;
   username?: string;
