@@ -76,6 +76,11 @@ export default function SheetsPage() {
   const [dots, setDots] = useState("");
 
   const user = localStorage.getItem("user");
+  const userObj = user ? JSON.parse(user) : null;
+
+  const workspaceUuid = localStorage.getItem("selected-workspace")
+    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
+    : null;
 
   const openDialogCreateSheet = () => {
     setOpenDialog(true);
@@ -102,12 +107,23 @@ export default function SheetsPage() {
 
   const fetchSheetsList = async () => {
     setLoading(true);
+
     try {
+      if (userObj?.username !== "administrator" && !workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description: "You must select a workspace to view its sheets.",
+          position: "top-right",
+        });
+
+        return;
+      }
+
       const res = await fetch("/api/sheets/list", {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ workspaceUuid }),
       });
 
       const data = await res.json();
@@ -131,11 +147,21 @@ export default function SheetsPage() {
 
   useEffect(() => {
     fetchSheetsList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveSheets = async (selectedSheet: SheetsData) => {
     setLoading(true);
-    const userObj = user ? JSON.parse(user) : null;
+
+    if (userObj?.username !== "administrator") {
+      if (!workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description: "You must select a workspace to save notes.",
+          position: "top-right",
+        });
+      }
+      return;
+    }
 
     const res = await fetch("/api/sheets/create", {
       method: "POST",
@@ -150,6 +176,7 @@ export default function SheetsPage() {
         labels: selectedSheet.labels ?? "",
         content: {},
         created_by: userObj.uuid,
+        workspaceUuid: workspaceUuid,
       }),
     });
 

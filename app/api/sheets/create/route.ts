@@ -13,6 +13,7 @@ export async function POST(req: Request) {
     labels,
     content,
     created_by,
+    workspaceUuid,
   } = body;
 
   const { data: sheet, error: sheetError } = await supabase
@@ -24,6 +25,7 @@ export async function POST(req: Request) {
       public: isPublic,
       content,
       created_by,
+      workspace_uuid: workspaceUuid,
     })
     .select()
     .single();

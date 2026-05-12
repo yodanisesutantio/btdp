@@ -59,7 +59,39 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: loginError.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, token, user: userData });
+    const { data: firstWorkspace, error: workspaceError } = await supabase
+      .from("workspaces_users")
+      .select(
+        `
+      role,
+
+      workspaces_data (
+        uuid,
+        slug,
+        title,
+        description
+      )
+    `,
+      )
+      .eq("user_uuid", userData.uuid)
+      .limit(1)
+      .maybeSingle();
+
+    if (workspaceError) {
+      return NextResponse.json(
+        {
+          error: workspaceError.message,
+        },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      token,
+      user: userData,
+      workspace: firstWorkspace?.workspaces_data,
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

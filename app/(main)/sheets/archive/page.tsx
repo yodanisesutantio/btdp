@@ -37,15 +37,33 @@ import { SheetsData } from "../page";
 export default function ArchiveSheetsPage() {
   const [archivedSheets, setArchivedSheets] = useState<SheetsData[]>([]);
   const [loading, setLoading] = useState(false);
+  const user = localStorage.getItem("user");
+  const userObj = user ? JSON.parse(user) : null;
+
+  const workspaceUuid = localStorage.getItem("selected-workspace")
+    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
+    : null;
 
   const fetchSheetsList = async () => {
     setLoading(true);
+
     try {
+      if (userObj?.username !== "administrator" && !workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description:
+            "You must select a workspace to view its archived sheets.",
+          position: "top-right",
+        });
+
+        return;
+      }
+
       const res = await fetch("/api/sheets/archived-list", {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ workspaceUuid }),
       });
 
       const data = await res.json();
@@ -69,6 +87,7 @@ export default function ArchiveSheetsPage() {
 
   useEffect(() => {
     fetchSheetsList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleArchiveSheets = async (sheetUuid: string) => {

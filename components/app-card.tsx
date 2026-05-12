@@ -23,7 +23,6 @@ export interface NotesPreviewCardProps<T> extends AppCardProps {
 }
 
 export function NotesPreviewCard<T>(props: NotesPreviewCardProps<T>) {
-  console.log(props?.data);
   return (
     <>
       {props.data && (

@@ -38,14 +38,33 @@ export default function ArchiveNotesPage() {
   const [archivedNotes, setArchivedNotes] = useState<NotesData[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const user = localStorage.getItem("user");
+  const userObj = user ? JSON.parse(user) : null;
+
+  const workspaceUuid = localStorage.getItem("selected-workspace")
+    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
+    : null;
+
   const fetchNotesList = async () => {
     setLoading(true);
+
     try {
+      if (userObj?.username !== "administrator" && !workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description:
+            "You must select a workspace to view its archived notes.",
+          position: "top-right",
+        });
+
+        return;
+      }
+
       const res = await fetch("/api/notes/archived-list", {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ workspaceUuid }),
       });
 
       const data = await res.json();
@@ -69,6 +88,7 @@ export default function ArchiveNotesPage() {
 
   useEffect(() => {
     fetchNotesList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleArchiveNotes = async (noteUuid: string) => {

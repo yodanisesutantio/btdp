@@ -75,6 +75,11 @@ export default function NotesPage() {
   const [dots, setDots] = useState("");
 
   const user = localStorage.getItem("user");
+  const userObj = user ? JSON.parse(user) : null;
+
+  const workspaceUuid = localStorage.getItem("selected-workspace")
+    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
+    : null;
 
   const openDialogCreateNotes = () => {
     setOpenDialog(true);
@@ -101,12 +106,23 @@ export default function NotesPage() {
 
   const fetchNotesList = async () => {
     setLoading(true);
+
     try {
+      if (userObj?.username !== "administrator" && !workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description: "You must select a workspace to view its notes.",
+          position: "top-right",
+        });
+
+        return;
+      }
+
       const res = await fetch("/api/notes/list", {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ workspaceUuid }),
       });
 
       const data = await res.json();
@@ -130,11 +146,21 @@ export default function NotesPage() {
 
   useEffect(() => {
     fetchNotesList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveNotes = async (selectedNotes: NotesData) => {
     setLoading(true);
-    const userObj = user ? JSON.parse(user) : null;
+
+    if (userObj?.username !== "administrator") {
+      if (!workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description: "You must select a workspace to save notes.",
+          position: "top-right",
+        });
+      }
+      return;
+    }
 
     const res = await fetch("/api/notes/create", {
       method: "POST",
@@ -149,6 +175,7 @@ export default function NotesPage() {
         labels: selectedNotes.labels ?? "",
         content: {},
         created_by: userObj.uuid,
+        workspaceUuid: workspaceUuid,
       }),
     });
 

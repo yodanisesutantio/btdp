@@ -91,6 +91,12 @@ function SigninPageInnerContent() {
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
+    if (data.workspace) {
+      localStorage.setItem(
+        "selected-workspace",
+        JSON.stringify(data.workspace),
+      );
+    }
     setLoading(false);
 
     toast.success("Logged in successfully!", { position: "top-right" });

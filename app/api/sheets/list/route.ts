@@ -2,18 +2,30 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { SheetsData } from "@/app/(main)/sheets/page";
 
-export async function GET() {
-  const { data: sheets, error } = await supabase
+export async function POST(req: Request) {
+  const { workspaceUuid } = await req.json();
+
+  let query = supabase
     .from("sheets_data")
     .select(
       `
-      *,
-      user:created_by (username, first_name, last_name)
-    `,
+    *,
+    user:created_by (
+      username,
+      first_name,
+      last_name
+    )
+  `,
     )
     .eq("archive", false)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+
+  if (workspaceUuid) {
+    query = query.eq("workspace_uuid", workspaceUuid);
+  }
+
+  const { data: sheets, error } = await query;
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });

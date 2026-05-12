@@ -15,11 +15,11 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import {
   Blocks,
+  Check,
   ChevronDown,
   FileText,
   FolderTree,
@@ -37,6 +37,17 @@ import { Separator } from "./ui/separator";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { useEffect, useState } from "react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "./ui/command";
+import { cn } from "@/lib/utils";
+import { WorkspaceData } from "@/app/(main)/workspaces/page";
 
 export interface AppSidebarProps {
   setOpenCommand?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -46,6 +57,47 @@ export function AppSidebar(props: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isActive = (path: string) => pathname === path;
+
+  const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
+  const [workspaceSearch, setWorkspaceSearch] = useState("");
+  const [selectedWorkspace, setSelectedWorkspace] =
+    useState<WorkspaceData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const savedWorkspace = localStorage.getItem("selected-workspace");
+
+    if (savedWorkspace) {
+      setSelectedWorkspace(JSON.parse(savedWorkspace));
+    }
+  }, []);
+
+  const fetchWorkspaces = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/workspaces");
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        toast.error("Operation Failed!", {
+          description: json.error,
+          position: "top-right",
+        });
+        return;
+      }
+
+      setWorkspaces(json.data ?? []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkspaces();
+  }, []);
 
   const user = localStorage.getItem("user");
 
@@ -80,14 +132,67 @@ export function AppSidebar(props: AppSidebarProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger className="w-full">
                   <SidebarMenuButton>
-                    Select Workspace
+                    {selectedWorkspace?.title ?? "Select Workspace"}
                     <ChevronDown className="ml-auto" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-[--radix-popper-anchor-width]">
-                  <DropdownMenuItem>
-                    <span>Acme Inc</span>
-                  </DropdownMenuItem>
+
+                <DropdownMenuContent className="w-72 p-0" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search workspace..."
+                      value={workspaceSearch}
+                      onValueChange={setWorkspaceSearch}
+                    />
+
+                    <CommandList>
+                      {loading && "Refreshing..."}
+                      <CommandEmpty>No workspace found.</CommandEmpty>
+
+                      <CommandGroup>
+                        {workspaces
+                          .filter(
+                            (workspace) =>
+                              workspace.title ??
+                              ""
+                                .toLowerCase()
+                                .includes(workspaceSearch.toLowerCase()),
+                          )
+                          .map((workspace) => (
+                            <CommandItem
+                              key={workspace.uuid}
+                              value={workspace.title}
+                              onSelect={() => {
+                                setSelectedWorkspace(workspace);
+
+                                localStorage.setItem(
+                                  "selected-workspace-data",
+                                  JSON.stringify(workspace),
+                                );
+                              }}
+                              className="cursor-pointer [&>svg:last-child]:hidden"
+                            >
+                              <div className="flex flex-1 flex-col">
+                                <span>{workspace.title}</span>
+
+                                <span className="text-xs text-muted-foreground">
+                                  {workspace.slug}
+                                </span>
+                              </div>
+
+                              <Check
+                                className={cn(
+                                  "ml-auto size-4",
+                                  selectedWorkspace?.uuid === workspace.uuid
+                                    ? "opacity-100"
+                                    : "opacity-0",
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
                 </DropdownMenuContent>
               </DropdownMenu>
               {(() => {
