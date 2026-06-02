@@ -33,16 +33,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SheetsData } from "../page";
+import { useWorkspace } from "@/hooks/workspace-context";
 
 export default function ArchiveSheetsPage() {
   const [archivedSheets, setArchivedSheets] = useState<SheetsData[]>([]);
   const [loading, setLoading] = useState(false);
+  const { selectedWorkspace } = useWorkspace();
   const user = localStorage.getItem("user");
   const userObj = user ? JSON.parse(user) : null;
 
-  const workspaceUuid = localStorage.getItem("selected-workspace")
-    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
-    : null;
+  const workspaceUuid = selectedWorkspace?.uuid;
 
   const fetchSheetsList = async () => {
     setLoading(true);

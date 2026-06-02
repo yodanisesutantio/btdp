@@ -48,6 +48,7 @@ import {
 } from "./ui/command";
 import { cn } from "@/lib/utils";
 import { WorkspaceData } from "@/app/(main)/workspaces/page";
+import { useWorkspace } from "@/hooks/workspace-context";
 
 export interface AppSidebarProps {
   setOpenCommand?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -60,17 +61,8 @@ export function AppSidebar(props: AppSidebarProps) {
 
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
   const [workspaceSearch, setWorkspaceSearch] = useState("");
-  const [selectedWorkspace, setSelectedWorkspace] =
-    useState<WorkspaceData | null>(null);
+  const { selectedWorkspace, setSelectedWorkspace } = useWorkspace();
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const savedWorkspace = localStorage.getItem("selected-workspace");
-
-    if (savedWorkspace) {
-      setSelectedWorkspace(JSON.parse(savedWorkspace));
-    }
-  }, []);
 
   const fetchWorkspaces = async () => {
     setLoading(true);
@@ -164,11 +156,6 @@ export function AppSidebar(props: AppSidebarProps) {
                               value={workspace.title}
                               onSelect={() => {
                                 setSelectedWorkspace(workspace);
-
-                                localStorage.setItem(
-                                  "selected-workspace-data",
-                                  JSON.stringify(workspace),
-                                );
                               }}
                               className="cursor-pointer [&>svg:last-child]:hidden"
                             >

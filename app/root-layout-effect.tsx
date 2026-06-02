@@ -2,12 +2,14 @@
 
 import { AppCommand } from "@/components/app-command";
 import { AppSidebar } from "@/components/app-sidebar";
+import { WorkspaceSelectorDialog } from "@/components/app-workspace-dialog";
 import PageBreadcrumbs from "@/components/page-breadcrumbs";
 import { Separator } from "@/components/ui/separator";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { useWorkspace } from "@/hooks/workspace-context";
 
 export interface RootLayoutEffectProps {
   children: React.ReactNode;
@@ -15,7 +17,10 @@ export interface RootLayoutEffectProps {
 
 export function RootLayoutEffect({ children }: RootLayoutEffectProps) {
   const [openCommand, setOpenCommand] = useState(false);
+  const { selectedWorkspace, setSelectedWorkspace } = useWorkspace();
+  const [, setOpenCreateWorkspace] = useState(false);
   const pathname = usePathname();
+  console.log("dialog open", !selectedWorkspace);
 
   return (
     <SidebarProvider>
@@ -39,6 +44,15 @@ export function RootLayoutEffect({ children }: RootLayoutEffectProps) {
         <Toaster />
       </div>
 
+      <WorkspaceSelectorDialog
+        open={!selectedWorkspace}
+        onSelect={(workspace) => {
+          setSelectedWorkspace(workspace);
+        }}
+        onCreateWorkspace={() => {
+          setOpenCreateWorkspace(false);
+        }}
+      />
       <AppCommand open={openCommand} setOpen={setOpenCommand} />
     </SidebarProvider>
   );

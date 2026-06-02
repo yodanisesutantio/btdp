@@ -114,11 +114,11 @@ function NotesEditorPageInnerContent() {
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <SectionsWrapper className="pt-8 pb-0">
-        <CreatableSelect
+        {/* <CreatableSelect
           value={notes?.labels}
           onChange={(value) => setNotesContent({ ...notes, labels: value })}
           className="w-48"
-        />
+        /> */}
 
         <div className="relative flex flex-col">
           <span className="text-xs text-end text-muted-foreground">

@@ -33,17 +33,17 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { NotesData } from "../page";
 import { toast } from "sonner";
+import { useWorkspace } from "@/hooks/workspace-context";
 
 export default function ArchiveNotesPage() {
   const [archivedNotes, setArchivedNotes] = useState<NotesData[]>([]);
   const [loading, setLoading] = useState(false);
+  const { selectedWorkspace } = useWorkspace();
 
   const user = localStorage.getItem("user");
   const userObj = user ? JSON.parse(user) : null;
 
-  const workspaceUuid = localStorage.getItem("selected-workspace")
-    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
-    : null;
+  const workspaceUuid = selectedWorkspace?.uuid;
 
   const fetchNotesList = async () => {
     setLoading(true);

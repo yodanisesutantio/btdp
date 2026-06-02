@@ -31,6 +31,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { TasksBoardData } from "../page";
+import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { useWorkspace } from "@/hooks/workspace-context";
 
 export const tasks: TasksBoardData[] = [
   // {
@@ -49,7 +52,116 @@ export const tasks: TasksBoardData[] = [
   // },
 ];
 
-export default function ArchiveNotesPage() {
+export default function ArchiveTasksPage() {
+  const [archivedTasks, setArchivedTasks] = useState<TasksBoardData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { selectedWorkspace } = useWorkspace();
+  const user = localStorage.getItem("user");
+  const userObj = user ? JSON.parse(user) : null;
+
+  const workspaceUuid = selectedWorkspace?.uuid;
+
+  const fetchTaskBoardsList = async () => {
+    setLoading(true);
+
+    try {
+      if (userObj?.username !== "administrator" && !workspaceUuid) {
+        toast.error("Please select a workspace first!", {
+          description:
+            "You must select a workspace to view its archived tasks board.",
+          position: "top-right",
+        });
+
+        return;
+      }
+
+      const res = await fetch("/api/tasks-board/archived-list", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ workspaceUuid }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setLoading(false);
+        toast.error("Operation Failed!", {
+          description: data.error,
+          position: "top-right",
+        });
+        console.error(data.error);
+        return;
+      }
+      setArchivedTasks(data.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTaskBoardsList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleArchiveTaskBoards = async (boardUuid: string) => {
+    setLoading(true);
+
+    const res = await fetch("/api/tasks-board/archive", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uuid: boardUuid,
+        archive: false,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setArchivedTasks((prev) => prev.filter((s) => s.uuid !== boardUuid));
+    toast.success("Task Board archived successfully", {
+      position: "top-right",
+    });
+  };
+
+  const handleDeleteTaskBoards = async (boardUuid: string) => {
+    setLoading(true);
+    const res = await fetch("/api/tasks-board", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uuid: boardUuid }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast.error("Operation Failed!", {
+        description: data.error,
+        position: "top-right",
+      });
+      console.error(data.error);
+      return;
+    }
+    setLoading(false);
+    setArchivedTasks((prev) => prev.filter((s) => s.uuid !== boardUuid));
+    toast.success("Task Board deleted successfully", { position: "top-right" });
+  };
+
   return (
     <div className="flex flex-col gap-4 w-full items-center justify-center font-sans pb-8">
       <PageTitleSections
@@ -65,8 +177,21 @@ export default function ArchiveNotesPage() {
       />
 
       <InBetweenSections className="gap-4">
-        {tasks.length > 0 ? (
-          tasks.map((task, index) => (
+        <div className="col-span-12">
+          <div className="flex justify-end w-full mb-2">
+            <Button
+              onClick={fetchTaskBoardsList}
+              disabled={loading}
+              size="sm"
+              className={`cursor-pointer`}
+              variant={`outline`}
+            >
+              {loading ? "Refreshing..." : "Reload Archived Sheets"}
+            </Button>
+          </div>
+        </div>
+        {archivedTasks.length > 0 ? (
+          archivedTasks.map((task, index) => (
             <Link
               key={index}
               href={`/notes/editor?q=${task.slug}`}
@@ -98,6 +223,7 @@ export default function ArchiveNotesPage() {
                           <MenubarItem
                             onClick={(e) => {
                               e.preventDefault();
+                              handleArchiveTaskBoards(task.uuid ?? "");
                             }}
                           >
                             Restore Notes
@@ -105,6 +231,7 @@ export default function ArchiveNotesPage() {
                           <MenubarItem
                             onClick={(e) => {
                               e.preventDefault();
+                              handleDeleteTaskBoards(task.uuid ?? "");
                             }}
                             variant="destructive"
                           >

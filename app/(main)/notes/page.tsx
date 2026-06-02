@@ -29,6 +29,7 @@ import {
   Menubar,
 } from "@/components/ui/menubar";
 import { Textarea } from "@/components/ui/textarea";
+import { useWorkspace } from "@/hooks/workspace-context";
 import { slugify } from "@/lib/helper";
 import { ArrowUpRightIcon, Ellipsis, FolderCode, Plus } from "lucide-react";
 import Link from "next/link";
@@ -73,13 +74,12 @@ export default function NotesPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dots, setDots] = useState("");
+  const { selectedWorkspace } = useWorkspace();
 
   const user = localStorage.getItem("user");
   const userObj = user ? JSON.parse(user) : null;
 
-  const workspaceUuid = localStorage.getItem("selected-workspace")
-    ? JSON.parse(localStorage.getItem("selected-workspace") ?? "").uuid
-    : null;
+  const workspaceUuid = selectedWorkspace?.uuid;
 
   const openDialogCreateNotes = () => {
     setOpenDialog(true);

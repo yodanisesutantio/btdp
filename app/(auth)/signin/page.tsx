@@ -9,6 +9,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { FieldLabel } from "@/components/ui/field";
 import { Eye, EyeOff } from "lucide-react";
+import { useWorkspace } from "@/hooks/workspace-context";
 
 export default function SigninPage() {
   return (
@@ -24,6 +25,7 @@ function SigninPageInnerContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dots, setDots] = useState("");
+  const { setSelectedWorkspace } = useWorkspace();
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -92,10 +94,7 @@ function SigninPageInnerContent() {
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
     if (data.workspace) {
-      localStorage.setItem(
-        "selected-workspace",
-        JSON.stringify(data.workspace),
-      );
+      setSelectedWorkspace(data.workspace);
     }
     setLoading(false);
 
