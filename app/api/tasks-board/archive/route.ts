@@ -2,21 +2,27 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 
 export async function POST(req: Request) {
-  const { uuid, archive } = await req.json();
+  try {
+    const { uuid, archive } = await req.json();
 
-  const { error } = await supabase
-    .from("tasks_board_data")
-    .update({
-      archive,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("uuid", uuid);
+    if (!uuid) {
+      return NextResponse.json({ error: "UUID is required" }, { status: 400 });
+    }
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    const { error } = await supabase
+      .from("tasks_board_data")
+      .update({
+        archive: archive !== undefined ? archive : true,
+      })
+      .eq("uuid", uuid);
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
-
-  return NextResponse.json({
-    success: true,
-  });
 }

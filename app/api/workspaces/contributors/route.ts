@@ -91,7 +91,7 @@ export async function PATCH(req: NextRequest) {
         .select("*")
         .eq("workspace_uuid", workspace_uuid)
         .eq("role", "Owner")
-        .single();
+        .maybeSingle();
 
       if (currentOwnerError) {
         return NextResponse.json(
@@ -102,21 +102,23 @@ export async function PATCH(req: NextRequest) {
         );
       }
 
-      const { error: downgradeError } = await supabase
-        .from("workspaces_users")
-        .update({
-          role: "Admin",
-        })
-        .eq("workspace_uuid", workspace_uuid)
-        .eq("user_uuid", currentOwner.user_uuid);
+      if (currentOwner) {
+        const { error: downgradeError } = await supabase
+          .from("workspaces_users")
+          .update({
+            role: "Admin",
+          })
+          .eq("workspace_uuid", workspace_uuid)
+          .eq("user_uuid", currentOwner.user_uuid);
 
-      if (downgradeError) {
-        return NextResponse.json(
-          {
-            error: downgradeError.message,
-          },
-          { status: 400 },
-        );
+        if (downgradeError) {
+          return NextResponse.json(
+            {
+              error: downgradeError.message,
+            },
+            { status: 400 },
+          );
+        }
       }
     }
 
@@ -158,7 +160,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { workspace_uuid, user_uuid } = body;
+    const { workspace_uuid, user_uuid, role } = body;
 
     if (!workspace_uuid || !user_uuid) {
       return NextResponse.json(
@@ -190,7 +192,7 @@ export async function POST(req: NextRequest) {
       .insert({
         workspace_uuid,
         user_uuid,
-        role: "Viewer",
+        role: role ?? "Viewer",
       })
       .select()
       .single();

@@ -27,6 +27,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export interface WorkspaceData {
   uuid?: string;
@@ -43,7 +53,7 @@ export interface WorkspaceData {
   }[];
 }
 
-const emptyWorkspace: WorkspaceData = {
+export const emptyWorkspace: WorkspaceData = {
   uuid: "",
   title: "",
   slug: "",
@@ -58,6 +68,7 @@ export default function WorkspacesPage() {
     useState<WorkspaceData | null>(emptyWorkspace);
 
   const [openDialog, setOpenDialog] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
   const [loading, setLoading] = useState(false);
   const [dots, setDots] = useState("");
 
@@ -87,10 +98,14 @@ export default function WorkspacesPage() {
   };
 
   const fetchWorkspaces = async () => {
+    if (!userObj?.uuid) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/workspaces");
-
+      const url =
+        userObj.username === "administrator"
+          ? "/api/workspaces"
+          : `/api/workspaces?user_uuid=${encodeURIComponent(userObj.uuid)}`;
+      const res = await fetch(url);
       const json = await res.json();
 
       if (!res.ok) {
@@ -116,8 +131,11 @@ export default function WorkspacesPage() {
   }, [userObj, router]);
 
   useEffect(() => {
-    fetchWorkspaces();
-  }, []);
+    if (userObj?.uuid) {
+      fetchWorkspaces();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userObj?.uuid]);
 
   const handleSaveWorkspaces = async (selectedWorkspace: WorkspaceData) => {
     setLoading(true);
@@ -262,7 +280,8 @@ export default function WorkspacesPage() {
                         <DropdownMenuItem
                           variant="destructive"
                           onClick={() => {
-                            handleDeleteWorkspace(workspace);
+                            setSelectedWorkspace(workspace);
+                            setOpenDelete(true);
                           }}
                           className={`cursor-pointer`}
                         >
@@ -341,6 +360,34 @@ export default function WorkspacesPage() {
           </div>
         }
       />
+
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Workspace?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className={`cursor-pointer`}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={async () => {
+                if (selectedWorkspace) {
+                  await handleDeleteWorkspace(selectedWorkspace);
+                }
+                setOpenDelete(false);
+              }}
+              className={`cursor-pointer`}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

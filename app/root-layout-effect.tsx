@@ -20,7 +20,6 @@ export function RootLayoutEffect({ children }: RootLayoutEffectProps) {
   const { selectedWorkspace, setSelectedWorkspace } = useWorkspace();
   const [, setOpenCreateWorkspace] = useState(false);
   const pathname = usePathname();
-  console.log("dialog open", !selectedWorkspace);
 
   return (
     <SidebarProvider>

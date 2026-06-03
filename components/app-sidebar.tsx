@@ -58,6 +58,8 @@ export function AppSidebar(props: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const isActive = (path: string) => pathname === path;
+  const user = localStorage.getItem("user");
+  const userObj = user ? JSON.parse(user) : null;
 
   const [workspaces, setWorkspaces] = useState<WorkspaceData[]>([]);
   const [workspaceSearch, setWorkspaceSearch] = useState("");
@@ -65,10 +67,14 @@ export function AppSidebar(props: AppSidebarProps) {
   const [loading, setLoading] = useState(false);
 
   const fetchWorkspaces = async () => {
+    if (!userObj?.uuid) return;
     setLoading(true);
     try {
-      const res = await fetch("/api/workspaces");
-
+      const url =
+        userObj.username === "administrator"
+          ? "/api/workspaces"
+          : `/api/workspaces?user_uuid=${encodeURIComponent(userObj.uuid)}`;
+      const res = await fetch(url);
       const json = await res.json();
 
       if (!res.ok) {
@@ -88,10 +94,11 @@ export function AppSidebar(props: AppSidebarProps) {
   };
 
   useEffect(() => {
-    fetchWorkspaces();
-  }, []);
-
-  const user = localStorage.getItem("user");
+    if (userObj?.uuid) {
+      fetchWorkspaces();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userObj?.uuid]);
 
   const handleSignOut = async () => {
     const token = localStorage.getItem("token");

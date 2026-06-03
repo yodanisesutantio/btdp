@@ -10,7 +10,6 @@ import { Plate, usePlateEditor } from "platejs/react";
 import { Editor, EditorContainer } from "@/components/ui/editor";
 import { EditorKit } from "@/components/editor/editor-kit";
 import { normalizeContent, slugify } from "@/lib/helper";
-import { CreatableSelect } from "@/components/app-creatable-select";
 
 export default function NotesEditorPage() {
   return (
@@ -76,7 +75,6 @@ function NotesEditorPageInnerContent() {
     }
 
     saveTimeout.current = setTimeout(async () => {
-      console.log(data);
       try {
         await fetch("/api/notes", {
           method: "PATCH",
