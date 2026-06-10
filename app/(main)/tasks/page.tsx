@@ -55,6 +55,7 @@ export interface TasksBoardData {
   public?: boolean;
   description?: string;
   content?: string;
+  states?: TasksState[];
   createdByFirstName?: string;
   createdByLastName?: string;
   createdBy?: string;
@@ -78,10 +79,13 @@ export const emptyTasksBoard: TasksBoardData = {
 
 export interface TasksState {
   key?: string;
+  uuid?: string;
   title?: string;
   color?: string;
+  archived?: boolean;
   collapsed?: boolean;
   taskItem?: TasksItem[];
+  order?: string;
 }
 
 export interface PriorityData {
@@ -92,6 +96,7 @@ export interface PriorityData {
 
 export interface TasksItem {
   key?: string;
+  uuid?: string;
   title?: string;
   slug?: string;
   content?: string;
@@ -106,8 +111,10 @@ export interface TasksItem {
 export const dummyTasksState: TasksState[] = [
   {
     key: "backlog",
+    uuid: "backlog-1",
     title: "Backlog",
     color: "gray",
+    archived: false,
     collapsed: false,
     taskItem: [
       {
@@ -122,8 +129,10 @@ export const dummyTasksState: TasksState[] = [
   },
   {
     key: "to-do",
+    uuid: "to-do-1",
     title: "To Do",
     color: "mauve",
+    archived: false,
     collapsed: false,
     taskItem: [
       {
@@ -138,8 +147,10 @@ export const dummyTasksState: TasksState[] = [
   },
   {
     key: "in-progress",
+    uuid: "in-progress-1",
     title: "In Progress",
     color: "blue",
+    archived: false,
     collapsed: false,
     taskItem: [
       {
@@ -154,8 +165,10 @@ export const dummyTasksState: TasksState[] = [
   },
   {
     key: "done",
+    uuid: "done-1",
     title: "Done",
     color: "green",
+    archived: false,
     collapsed: false,
     taskItem: [
       {
@@ -170,9 +183,11 @@ export const dummyTasksState: TasksState[] = [
   },
   {
     key: "cancelled",
+    uuid: "cancelled-1",
     title: "Cancelled",
     color: "red",
     collapsed: false,
+    archived: false,
     taskItem: [
       {
         key: "task-5",
