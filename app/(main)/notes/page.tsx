@@ -152,13 +152,11 @@ export default function NotesPage() {
   const handleSaveNotes = async (selectedNotes: NotesData) => {
     setLoading(true);
 
-    if (userObj?.username !== "administrator") {
-      if (!workspaceUuid) {
-        toast.error("Please select a workspace first!", {
-          description: "You must select a workspace to save notes.",
-          position: "top-right",
-        });
-      }
+    if (userObj?.username !== "administrator" && !workspaceUuid) {
+      toast.error("Please select a workspace first!", {
+        description: "You must select a workspace to save notes.",
+        position: "top-right",
+      });
       return;
     }
 

@@ -61,7 +61,7 @@ export interface TasksBoardData {
   createdAt?: string;
 }
 
-const emptyTasksBoard: TasksBoardData = {
+export const emptyTasksBoard: TasksBoardData = {
   uuid: "",
   imagePreview: "",
   title: "",
@@ -311,13 +311,11 @@ export default function TasksPage() {
   const handleSaveTaskBoard = async (selectedBoard: TasksBoardData) => {
     setLoading(true);
 
-    if (userObj?.username !== "administrator") {
-      if (!workspaceUuid) {
-        toast.error("Please select a workspace first!", {
-          description: "You must select a workspace to save task boards.",
-          position: "top-right",
-        });
-      }
+    if (userObj?.username !== "administrator" && !workspaceUuid) {
+      toast.error("Please select a workspace first!", {
+        description: "You must select a workspace to save task boards.",
+        position: "top-right",
+      });
       return;
     }
 
@@ -466,7 +464,7 @@ export default function TasksPage() {
           tasks.map((board, index) => (
             <Link
               key={index}
-              href={`/tasks/board?q=${board.slug}`}
+              href={`/tasks/board?q=${board.slug}&id=${board.uuid}`}
               className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
             >
               <NotesPreviewCard
@@ -494,14 +492,10 @@ export default function TasksPage() {
                         <MenubarGroup>
                           <Link
                             key={index}
-                            href={`/tasks/setting?q=${board.slug}`}
+                            href={`/tasks/setting?q=${board.slug}&id=${board.uuid}`}
                             className="col-span-12 md:col-span-6 lg:col-span-4 w-full rounded-xl cursor-pointer"
                           >
-                            <MenubarItem
-                              onClick={(e) => {
-                                e.preventDefault();
-                              }}
-                            >
+                            <MenubarItem className={`cursor-pointer`}>
                               Setting
                             </MenubarItem>
                           </Link>
@@ -509,6 +503,7 @@ export default function TasksPage() {
                         <MenubarSeparator />
                         <MenubarGroup>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
                               handleArchiveTaskBoard(board.uuid ?? "");
@@ -517,6 +512,7 @@ export default function TasksPage() {
                             Archive
                           </MenubarItem>
                           <MenubarItem
+                            className={`cursor-pointer`}
                             onClick={(e) => {
                               e.preventDefault();
                               handleDeleteTaskBoard(board.uuid ?? "");
@@ -530,6 +526,7 @@ export default function TasksPage() {
                         <MenubarGroup>
                           <MenubarSub>
                             <MenubarSubTrigger
+                              className={`cursor-pointer`}
                               onClick={(e) => {
                                 e.preventDefault();
                               }}
@@ -539,6 +536,7 @@ export default function TasksPage() {
                             <MenubarSubContent>
                               <MenubarGroup>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}
@@ -546,6 +544,7 @@ export default function TasksPage() {
                                   Copy Link
                                 </MenubarItem>
                                 <MenubarItem
+                                  className={`cursor-pointer`}
                                   onClick={(e) => {
                                     e.preventDefault();
                                   }}
