@@ -249,7 +249,7 @@ function TasksBoardSettingPageInnerContent() {
               <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="!w-[7%]">#</TableHead>
+                    <TableHead className="!w-[7%] text-center">#</TableHead>
                     <TableHead className="!w-[65%]">Title</TableHead>
                     <TableHead className="!w-[18%]">Color</TableHead>
                     <TableHead className="!w-[10%] text-center">

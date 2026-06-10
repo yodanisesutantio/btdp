@@ -27,7 +27,7 @@ function SortableTaskStateRow({ state }: { state: TasksState }) {
 
   return (
     <TableRow ref={setNodeRef} style={style}>
-      <TableCell className="!w-[7%]">
+      <TableCell className="!w-[7%] text-center">
         <Button
           className={`cursor-pointer`}
           variant="ghost"
