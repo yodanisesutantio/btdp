@@ -79,9 +79,11 @@ export const emptyTasksBoard: TasksBoardData = {
 
 export interface TasksState {
   key?: string;
+  task_board_uuid?: string;
   uuid?: string;
   title?: string;
   color?: string;
+  default?: boolean;
   archived?: boolean;
   collapsed?: boolean;
   taskItem?: TasksItem[];
@@ -113,7 +115,8 @@ export const dummyTasksState: TasksState[] = [
     key: "backlog",
     uuid: "backlog-1",
     title: "Backlog",
-    color: "gray",
+    color: "#64748B",
+    default: true,
     archived: false,
     collapsed: false,
     taskItem: [
@@ -126,12 +129,14 @@ export const dummyTasksState: TasksState[] = [
         createdAt: "2023-01-01",
       },
     ],
+    order: "1",
   },
   {
     key: "to-do",
     uuid: "to-do-1",
     title: "To Do",
-    color: "mauve",
+    color: "#9F7AEA",
+    default: false,
     archived: false,
     collapsed: false,
     taskItem: [
@@ -144,12 +149,14 @@ export const dummyTasksState: TasksState[] = [
         createdAt: "2023-01-01",
       },
     ],
+    order: "2",
   },
   {
     key: "in-progress",
     uuid: "in-progress-1",
     title: "In Progress",
-    color: "blue",
+    color: "#60A5FA",
+    default: false,
     archived: false,
     collapsed: false,
     taskItem: [
@@ -162,12 +169,14 @@ export const dummyTasksState: TasksState[] = [
         createdAt: "2023-01-01",
       },
     ],
+    order: "3",
   },
   {
     key: "done",
     uuid: "done-1",
     title: "Done",
-    color: "green",
+    color: "#4ADE80",
+    default: false,
     archived: false,
     collapsed: false,
     taskItem: [
@@ -180,13 +189,15 @@ export const dummyTasksState: TasksState[] = [
         createdAt: "2023-01-01",
       },
     ],
+    order: "4",
   },
   {
     key: "cancelled",
     uuid: "cancelled-1",
     title: "Cancelled",
-    color: "red",
+    color: "#F87171",
     collapsed: false,
+    default: false,
     archived: false,
     taskItem: [
       {
@@ -198,6 +209,7 @@ export const dummyTasksState: TasksState[] = [
         createdAt: "2023-01-01",
       },
     ],
+    order: "5",
   },
 ];
 

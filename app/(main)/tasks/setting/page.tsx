@@ -6,7 +6,7 @@ import { FieldLabel, FieldSet } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
-import { dummyTasksState, emptyTasksBoard, TasksBoardData } from "../page";
+import { emptyTasksBoard, TasksBoardData, TasksState } from "../page";
 import { Textarea } from "@/components/ui/textarea";
 import { useWorkspace } from "@/hooks/workspace-context";
 import { toast } from "sonner";
@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -94,19 +95,22 @@ function TasksBoardSettingPageInnerContent() {
 
     if (!over || active.id === over.id || !taskBoard) return;
 
-    const oldIndex = taskBoard?.states?.findIndex(
+    const oldIndex = taskBoard.states?.findIndex(
       (state) => state.uuid === active.id,
     );
 
-    const newIndex = taskBoard?.states?.findIndex(
+    const newIndex = taskBoard.states?.findIndex(
       (state) => state.uuid === over.id,
     );
 
     const reorderedStates = arrayMove(
-      taskBoard?.states ?? [],
+      taskBoard.states ?? [],
       oldIndex ?? 0,
       newIndex ?? 0,
-    );
+    ).map((state, index) => ({
+      ...state,
+      order: String(index + 1),
+    }));
 
     setTaskBoard({
       ...taskBoard,
@@ -128,7 +132,9 @@ function TasksBoardSettingPageInnerContent() {
 
   const handleSaveTaskBoard = async (selectedBoard: TasksBoardData) => {
     setLoading(true);
-    console.log(selectedBoard);
+    // console.log(selectedBoard);
+    // setLoading(false);
+    // return;
 
     if (userObj?.username !== "administrator" && !workspaceUuid) {
       toast.error("Please select a workspace first!", {
@@ -146,6 +152,7 @@ function TasksBoardSettingPageInnerContent() {
         title: selectedBoard.title,
         slug: selectedBoard.title,
         description: selectedBoard.description,
+        states: selectedBoard.states,
       }),
     });
 
@@ -166,6 +173,74 @@ function TasksBoardSettingPageInnerContent() {
       position: "top-right",
     });
     fetchTaskBoard();
+  };
+
+  const handleDiscard = async () => {
+    await fetchTaskBoard();
+  };
+
+  const handleAddState = () => {
+    const hasDefaultState = taskBoard?.states?.some((state) => state.default);
+
+    const newState: TasksState = {
+      key: slugify("New State"),
+      uuid: crypto.randomUUID(),
+      title: "New State",
+      color: "#6B7280",
+      default: !hasDefaultState,
+      archived: false,
+      collapsed: false,
+      order: taskBoard?.states
+        ? String((taskBoard.states.length ?? 0) + 1)
+        : "1",
+    };
+
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        states: [...(prev.states ?? []), newState],
+      };
+    });
+  };
+
+  const handleDefaultState = (stateUuid: string) => {
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        states: prev.states?.map((state) => ({
+          ...state,
+          default: state.uuid === stateUuid,
+        })),
+      };
+    });
+  };
+
+  const handleStateChange = (updatedState: TasksState) => {
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        states: prev.states?.map((state) =>
+          state.uuid === updatedState.uuid ? updatedState : state,
+        ),
+      };
+    });
+  };
+
+  const handleRemoveState = (stateUuid: string) => {
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        states: prev.states?.filter((state) => state.uuid !== stateUuid),
+      };
+    });
   };
 
   return (
@@ -263,13 +338,7 @@ function TasksBoardSettingPageInnerContent() {
                     onDragEnd={handleDragEnd}
                   >
                     <SortableContext
-                      // items={(taskBoard?.states ?? [])
-                      //   .filter(
-                      //     (s): s is { uuid: string } =>
-                      //       typeof s.uuid === "string",
-                      //   )
-                      //   .map((state) => state.uuid)}
-                      items={(dummyTasksState ?? [])
+                      items={(taskBoard?.states ?? [])
                         .filter(
                           (s): s is { uuid: string } =>
                             typeof s.uuid === "string",
@@ -277,21 +346,36 @@ function TasksBoardSettingPageInnerContent() {
                         .map((state) => state.uuid)}
                       strategy={verticalListSortingStrategy}
                     >
-                      {/* {taskBoard?.states?.map((state) => (
-                        <SortableTaskStateRow key={state.uuid} state={state} />
-                      ))} */}
-                      {dummyTasksState?.map((state) => (
-                        <SortableTaskStateRow key={state.uuid} state={state} />
+                      {taskBoard?.states?.map((state) => (
+                        <SortableTaskStateRow
+                          key={state.uuid}
+                          state={state}
+                          onStateChange={handleStateChange}
+                          onStateDefault={handleDefaultState}
+                          onStateDelete={handleRemoveState}
+                        />
                       ))}
                     </SortableContext>
                   </DndContext>
+
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-center border border-dashed cursor-pointer"
+                        onClick={handleAddState}
+                      >
+                        + Add State
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 </TableBody>
               </Table>
 
               <div className="flex gap-2 justify-end w-full mt-6 mb-2">
                 <Button
                   variant="outline"
-                  onClick={() => {}}
+                  onClick={fetchTaskBoard}
                   className="cursor-pointer"
                 >
                   Discard
