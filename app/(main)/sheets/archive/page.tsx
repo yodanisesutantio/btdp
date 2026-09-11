@@ -86,9 +86,10 @@ export default function ArchiveSheetsPage() {
   };
 
   useEffect(() => {
+    if (!workspaceUuid) return;
     fetchSheetsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspaceUuid]);
 
   const handleArchiveSheets = async (sheetUuid: string) => {
     setLoading(true);

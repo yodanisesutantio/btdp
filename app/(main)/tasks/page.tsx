@@ -100,15 +100,30 @@ export interface TasksItem {
   key?: string;
   uuid?: string;
   title?: string;
-  slug?: string;
   content?: string;
   priority?: string;
   startDate?: string;
   endDate?: string;
   labels?: string;
+  state_uuid?: string;
+  state_color?: string;
+  archived?: boolean;
   createdBy?: string;
   createdAt?: string;
 }
+
+export const dummyTasksItem: TasksItem = {
+  key: "",
+  uuid: "",
+  title: "",
+  content: "",
+  priority: "",
+  startDate: "",
+  endDate: "",
+  labels: "",
+  createdBy: "",
+  createdAt: "",
+};
 
 export const dummyTasksState: TasksState[] = [
   {
@@ -122,7 +137,6 @@ export const dummyTasksState: TasksState[] = [
     taskItem: [
       {
         key: "task-1",
-        slug: "task-1",
         title: "Task 1",
         content: "This is the first backlog Task",
         createdBy: "Random User",
@@ -142,7 +156,6 @@ export const dummyTasksState: TasksState[] = [
     taskItem: [
       {
         key: "task-2",
-        slug: "task-2",
         title: "Task 2",
         content: "This is the first To Do Task",
         createdBy: "Random User",
@@ -162,7 +175,6 @@ export const dummyTasksState: TasksState[] = [
     taskItem: [
       {
         key: "task-3",
-        slug: "task-3",
         title: "Task 3",
         content: "This is the first In Progress Task",
         createdBy: "Random User",
@@ -182,7 +194,6 @@ export const dummyTasksState: TasksState[] = [
     taskItem: [
       {
         key: "task-4",
-        slug: "task-4",
         title: "Task 4",
         content: "This is the first Done Task",
         createdBy: "Random User",
@@ -202,7 +213,6 @@ export const dummyTasksState: TasksState[] = [
     taskItem: [
       {
         key: "task-5",
-        slug: "task-5",
         title: "Task 5",
         content: "This is the first cancelled Task",
         createdBy: "Random User",
@@ -331,9 +341,10 @@ export default function TasksPage() {
   };
 
   useEffect(() => {
+    if (!workspaceUuid) return;
     fetchTaskBoardsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspaceUuid]);
 
   const handleSaveTaskBoard = async (selectedBoard: TasksBoardData) => {
     setLoading(true);

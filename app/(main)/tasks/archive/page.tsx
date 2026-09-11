@@ -103,9 +103,10 @@ export default function ArchiveTasksPage() {
   };
 
   useEffect(() => {
+    if (!workspaceUuid) return;
     fetchTaskBoardsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspaceUuid]);
 
   const handleArchiveTaskBoards = async (boardUuid: string) => {
     setLoading(true);

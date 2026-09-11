@@ -7,6 +7,18 @@ export const slugify = (text: string) => {
     .replace(/--+/g, "-");
 };
 
+export const generateBoardPrefix = (boardName: string) => {
+  const words = boardName.trim().split(/\s+/).filter(Boolean);
+
+  if (!words.length) {
+    return "TASK";
+  }
+
+  const prefix = words.map((word) => word.charAt(0).toUpperCase()).join("");
+
+  return prefix.slice(0, 7);
+};
+
 export const getPasswordStrength = (password: string) => {
   if (!password) return "none";
 

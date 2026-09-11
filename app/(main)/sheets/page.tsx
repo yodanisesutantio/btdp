@@ -146,9 +146,10 @@ export default function SheetsPage() {
   };
 
   useEffect(() => {
+    if (!workspaceUuid) return;
     fetchSheetsList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspaceUuid]);
 
   const handleSaveSheets = async (selectedSheet: SheetsData) => {
     setLoading(true);

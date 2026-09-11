@@ -132,9 +132,6 @@ function TasksBoardSettingPageInnerContent() {
 
   const handleSaveTaskBoard = async (selectedBoard: TasksBoardData) => {
     setLoading(true);
-    // console.log(selectedBoard);
-    // setLoading(false);
-    // return;
 
     if (userObj?.username !== "administrator" && !workspaceUuid) {
       toast.error("Please select a workspace first!", {
@@ -173,10 +170,6 @@ function TasksBoardSettingPageInnerContent() {
       position: "top-right",
     });
     fetchTaskBoard();
-  };
-
-  const handleDiscard = async () => {
-    await fetchTaskBoard();
   };
 
   const handleAddState = () => {
@@ -283,7 +276,7 @@ function TasksBoardSettingPageInnerContent() {
                   </div>
                   <div className="w-1/2 flex flex-col gap-2">
                     <FieldLabel htmlFor="description" className="gap-0">
-                      Description<span className="text-red-500">*</span>
+                      Description
                     </FieldLabel>
                     <Textarea
                       id="description"

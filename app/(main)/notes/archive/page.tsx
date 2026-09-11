@@ -87,9 +87,10 @@ export default function ArchiveNotesPage() {
   };
 
   useEffect(() => {
+    if (!workspaceUuid) return;
     fetchNotesList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspaceUuid]);
 
   const handleArchiveNotes = async (noteUuid: string) => {
     setLoading(true);

@@ -145,9 +145,10 @@ export default function NotesPage() {
   };
 
   useEffect(() => {
+    if (!workspaceUuid) return;
     fetchNotesList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [workspaceUuid]);
 
   const handleSaveNotes = async (selectedNotes: NotesData) => {
     setLoading(true);
