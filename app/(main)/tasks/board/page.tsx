@@ -6,7 +6,6 @@ import { Plate, usePlateEditor } from "platejs/react";
 import { Editor, EditorContainer } from "@/components/ui/editor";
 import { EditorKit } from "@/components/editor/editor-kit";
 import {
-  borderColorMap,
   emptyTasksBoard,
   priorityData,
   TasksBoardData,
@@ -35,6 +34,13 @@ import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useWorkspace } from "@/hooks/workspace-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { TaskDateButton } from "@/components/app-date-task";
 
 export default function TasksBoardPage() {
   return (
@@ -229,7 +235,24 @@ function TasksBoardPageInnerContent() {
         throw new Error(json?.error ?? "Failed to update task");
       }
 
-      return json.data;
+      const updatedItem = json.data;
+
+      setTaskBoard((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          states:
+            prev.states?.map((state) => ({
+              ...state,
+              taskItem:
+                state.taskItem?.map((item) =>
+                  item.uuid === taskUuid ? { ...item, ...updatedItem } : item,
+                ) ?? [],
+            })) ?? [],
+        };
+      });
+
+      return updatedItem;
     } catch (err) {
       console.error(err);
       return null;
@@ -300,6 +323,40 @@ function TasksBoardPageInnerContent() {
       }
     };
   }, []);
+
+  const changeTaskState = async (taskUuid: string, stateUuid: string) => {
+    const result = await updateTaskItem(taskUuid, {
+      state_uuid: stateUuid,
+    });
+
+    if (!result) return;
+
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      const task = prev.states
+        ?.flatMap((state) => state.taskItem ?? [])
+        .find((item) => item.uuid === taskUuid);
+
+      if (!task) return prev;
+
+      return {
+        ...prev,
+        states:
+          prev.states?.map((state) => ({
+            ...state,
+            taskItem:
+              state.uuid === stateUuid
+                ? [
+                    { ...task, state_uuid: stateUuid },
+                    ...(state.taskItem ?? []),
+                  ]
+                : (state.taskItem?.filter((item) => item.uuid !== taskUuid) ??
+                  []),
+          })) ?? [],
+      };
+    });
+  };
 
   const archiveTaskItem = async () => {
     if (!selectedTask?.uuid) return;
@@ -647,78 +704,184 @@ function TasksBoardPageInnerContent() {
                               <div className="flex flex-wrap items-center gap-1.5 whitespace-nowrap pt-1.5">
                                 <div className="h-5">
                                   <div className="h-full flex items-center">
-                                    <Button
-                                      variant="outline"
-                                      type="button"
-                                      className="clickable block h-full bg-transparent rounded outline-none cursor-pointer hover:bg-muted hover:border-foreground truncate max-w-40"
-                                    >
-                                      <div className="h-full flex items-center">
-                                        <div className="h-full w-full flex items-center gap-1.5 rounded text-xs">
-                                          <div
-                                            className={`border-l-2 h-3`}
-                                            style={{
-                                              borderLeftColor: item.state_color,
-                                            }}
-                                          ></div>
-                                          <span className="flex-grow truncate text-left">
-                                            {state.title ?? ""}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </Button>
-                                  </div>
-                                </div>
-                                <div className="h-5">
-                                  <div className="h-full flex items-center">
-                                    <Button
-                                      variant="outline"
-                                      type="button"
-                                      className="clickable block h-full bg-transparent rounded outline-none cursor-pointer hover:bg-muted hover:border-foreground truncate max-w-40"
-                                    >
-                                      <div className="h-full flex items-center">
-                                        <div className="h-full flex items-center gap-1.5 rounded text-xs">
-                                          <div className="">
-                                            {priorityData.find(
-                                              (p) => p.key === item.priority,
-                                            )?.icon ??
-                                              priorityData.find(
-                                                (p) => p.key === "none",
-                                              )?.icon}
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger>
+                                        <Button
+                                          variant="outline"
+                                          type="button"
+                                          className="clickable block h-full max-w-40 cursor-pointer truncate rounded bg-transparent outline-none hover:border-foreground hover:bg-muted"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                          }}
+                                        >
+                                          <div className="flex h-full items-center">
+                                            <div className="flex h-full w-full items-center gap-1.5 rounded text-xs">
+                                              <div
+                                                className="h-3 border-l-2"
+                                                style={{
+                                                  borderLeftColor:
+                                                    item.state_color,
+                                                }}
+                                              />
+                                              <span className="flex-grow truncate text-left">
+                                                {state.title ?? ""}
+                                              </span>
+                                            </div>
                                           </div>
-                                        </div>
-                                      </div>
-                                    </Button>
+                                        </Button>
+                                      </DropdownMenuTrigger>
+
+                                      <DropdownMenuContent
+                                        align="start"
+                                        className="w-52"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        {taskBoard?.states?.map(
+                                          (boardState) => (
+                                            <DropdownMenuItem
+                                              key={boardState.uuid}
+                                              disabled={
+                                                boardState.uuid === state.uuid
+                                              }
+                                              onClick={(e) => {
+                                                e.preventDefault();
+
+                                                if (
+                                                  boardState.uuid &&
+                                                  boardState.uuid !==
+                                                    state.uuid &&
+                                                  item.uuid
+                                                ) {
+                                                  changeTaskState(
+                                                    item.uuid,
+                                                    boardState.uuid,
+                                                  );
+                                                }
+                                              }}
+                                              className="cursor-pointer gap-2"
+                                            >
+                                              <div
+                                                className="h-4 border-l-2"
+                                                style={{
+                                                  borderLeftColor:
+                                                    boardState.color ??
+                                                    "#6B7280",
+                                                }}
+                                              />
+
+                                              <span className="truncate">
+                                                {boardState.title ?? ""}
+                                              </span>
+
+                                              {boardState.uuid ===
+                                                state.uuid && (
+                                                <span className="ml-auto text-xs text-muted-foreground">
+                                                  Current
+                                                </span>
+                                              )}
+                                            </DropdownMenuItem>
+                                          ),
+                                        )}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
                                 </div>
                                 <div className="h-5">
                                   <div className="h-full flex items-center">
-                                    <Button
-                                      variant="outline"
-                                      type="button"
-                                      className="clickable block h-full bg-transparent rounded outline-none cursor-pointer hover:bg-muted hover:border-foreground truncate max-w-40"
-                                    >
-                                      <div className="h-full flex items-center">
-                                        <div className="h-full w-full flex items-center gap-1.5 rounded text-xs">
-                                          <CalendarClock className="h-3.5 w-3.5" />
-                                        </div>
-                                      </div>
-                                    </Button>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger>
+                                        <Button
+                                          variant="outline"
+                                          type="button"
+                                          className="clickable block h-full max-w-40 cursor-pointer truncate rounded bg-transparent outline-none hover:border-foreground hover:bg-muted"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                          }}
+                                        >
+                                          <div className="flex h-full items-center">
+                                            <div className="flex h-full items-center gap-1.5 rounded text-xs">
+                                              {priorityData.find(
+                                                (p) => p.key === item.priority,
+                                              )?.icon ??
+                                                priorityData.find(
+                                                  (p) => p.key === "none",
+                                                )?.icon}
+                                            </div>
+                                          </div>
+                                        </Button>
+                                      </DropdownMenuTrigger>
+
+                                      <DropdownMenuContent
+                                        align="start"
+                                        className="w-40"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                        }}
+                                      >
+                                        {priorityData.map((priority) => (
+                                          <DropdownMenuItem
+                                            key={priority.key}
+                                            className="cursor-pointer gap-2"
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              if (
+                                                item.uuid &&
+                                                priority.key !== item.priority
+                                              ) {
+                                                updateTaskItem(item.uuid, {
+                                                  priority: priority.key,
+                                                });
+                                              }
+                                            }}
+                                          >
+                                            <div className="flex items-center gap-2">
+                                              {priority.icon}
+
+                                              <span>{priority.name}</span>
+                                            </div>
+
+                                            {priority.key === item.priority && (
+                                              <span className="ml-auto text-xs text-muted-foreground">
+                                                Current
+                                              </span>
+                                            )}
+                                          </DropdownMenuItem>
+                                        ))}
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
                                 </div>
                                 <div className="h-5">
-                                  <div className="h-full flex items-center">
-                                    <Button
-                                      variant="outline"
-                                      type="button"
-                                      className="clickable block h-full bg-transparent rounded outline-none cursor-pointer hover:bg-muted hover:border-foreground truncate max-w-40"
-                                    >
-                                      <div className="h-full flex items-center">
-                                        <div className="h-full w-full flex items-center gap-1.5 rounded text-xs">
-                                          <CalendarCheck2 className="h-3.5 w-3.5" />
-                                        </div>
-                                      </div>
-                                    </Button>
-                                  </div>
+                                  <TaskDateButton
+                                    icon={
+                                      <CalendarClock className="h-3.5 w-3.5" />
+                                    }
+                                    value={item.start_date}
+                                    onSelect={(iso) =>
+                                      updateTaskItem(item.uuid!, {
+                                        start_date: iso,
+                                      })
+                                    }
+                                  />
+                                </div>
+                                <div className="h-5">
+                                  <TaskDateButton
+                                    icon={
+                                      <CalendarCheck2 className="h-3.5 w-3.5" />
+                                    }
+                                    value={item.end_date}
+                                    onSelect={(iso) =>
+                                      updateTaskItem(item.uuid!, {
+                                        end_date: iso,
+                                      })
+                                    }
+                                  />
                                 </div>
                                 <div className="h-5">
                                   <div

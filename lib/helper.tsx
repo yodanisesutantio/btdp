@@ -79,3 +79,47 @@ export const normalizeContent = (content: any) => {
     },
   ];
 };
+
+export const toDate = (value?: string | null): Date | undefined => {
+  if (!value) return undefined;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? undefined : d;
+};
+
+export const toTimeInputValue = (date?: Date): string => {
+  if (!date) return "00:00";
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+export const combineDateAndTime = (date: Date, time: string): Date => {
+  const [hoursStr, minutesStr] = time.split(":");
+  const combined = new Date(date);
+  combined.setHours(Number(hoursStr) || 0, Number(minutesStr) || 0, 0, 0);
+  return combined;
+};
+
+export const formatDisplay = (date?: Date): string => {
+  if (!date) return "";
+
+  return date.toLocaleString(undefined, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
+export const formatDateTimeForDatabase = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+};

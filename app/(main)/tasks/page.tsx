@@ -102,8 +102,8 @@ export interface TasksItem {
   title?: string;
   content?: string;
   priority?: string;
-  startDate?: string;
-  endDate?: string;
+  start_date?: string;
+  end_date?: string;
   labels?: string;
   state_uuid?: string;
   state_color?: string;
@@ -118,8 +118,8 @@ export const dummyTasksItem: TasksItem = {
   title: "",
   content: "",
   priority: "",
-  startDate: "",
-  endDate: "",
+  start_date: "",
+  end_date: "",
   labels: "",
   createdBy: "",
   createdAt: "",

@@ -119,14 +119,18 @@ function TasksBoardSettingPageInnerContent() {
   };
 
   const handleTitleChange = (value: string) => {
-    setTaskBoard({ ...taskBoard, title: value });
-
     const slug = slugify(value);
+
+    setTaskBoard({
+      ...taskBoard,
+      title: value,
+      slug,
+    });
 
     if (slug) {
       router.replace(`/tasks/setting?q=${slug}&id=${taskBoard?.uuid}`);
     } else {
-      router.replace(`/notes`);
+      router.replace(`/tasks`);
     }
   };
 
@@ -147,7 +151,7 @@ function TasksBoardSettingPageInnerContent() {
       body: JSON.stringify({
         uuid,
         title: selectedBoard.title,
-        slug: selectedBoard.title,
+        slug: selectedBoard.slug,
         description: selectedBoard.description,
         states: selectedBoard.states,
       }),
