@@ -17,6 +17,7 @@ import {
   Archive,
   CalendarCheck2,
   CalendarClock,
+  Check,
   Ellipsis,
   ExternalLink,
   Kanban,
@@ -41,6 +42,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TaskDateButton } from "@/components/app-date-task";
+import { FieldLabel, FieldSet } from "@/components/ui/field";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function TasksBoardPage() {
   return (
@@ -340,6 +349,12 @@ function TasksBoardPageInnerContent() {
 
       if (!task) return prev;
 
+      const updatedTask = {
+        ...task,
+        state_uuid: stateUuid,
+        state_name: result.state_name,
+      };
+
       return {
         ...prev,
         states:
@@ -348,11 +363,14 @@ function TasksBoardPageInnerContent() {
             taskItem:
               state.uuid === stateUuid
                 ? [
-                    { ...task, state_uuid: stateUuid },
-                    ...(state.taskItem ?? []),
+                    updatedTask,
+                    ...(state.taskItem ?? []).filter(
+                      (item) => item.uuid !== taskUuid,
+                    ),
                   ]
-                : (state.taskItem?.filter((item) => item.uuid !== taskUuid) ??
-                  []),
+                : (state.taskItem ?? []).filter(
+                    (item) => item.uuid !== taskUuid,
+                  ),
           })) ?? [],
       };
     });
@@ -762,7 +780,7 @@ function TasksBoardPageInnerContent() {
                                                   );
                                                 }
                                               }}
-                                              className="cursor-pointer gap-2"
+                                              className={`cursor-pointer gap-2`}
                                             >
                                               <div
                                                 className="h-4 border-l-2"
@@ -779,8 +797,8 @@ function TasksBoardPageInnerContent() {
 
                                               {boardState.uuid ===
                                                 state.uuid && (
-                                                <span className="ml-auto text-xs text-muted-foreground">
-                                                  Current
+                                                <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center">
+                                                  <Check className="pointer-events-none" />
                                                 </span>
                                               )}
                                             </DropdownMenuItem>
@@ -847,8 +865,8 @@ function TasksBoardPageInnerContent() {
                                             </div>
 
                                             {priority.key === item.priority && (
-                                              <span className="ml-auto text-xs text-muted-foreground">
-                                                Current
+                                              <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center">
+                                                <Check className="pointer-events-none" />
                                               </span>
                                             )}
                                           </DropdownMenuItem>
@@ -934,6 +952,7 @@ function TasksBoardPageInnerContent() {
         <SheetContent
           side={side}
           className={`[&>button]:hidden !w-full md:!w-3/5 lg:!w-2/5 !max-w-none`}
+          showCloseButton={false}
         >
           <SheetHeader className="p-2">
             <div className="flex items-center justify-between w-full">
@@ -995,69 +1014,147 @@ function TasksBoardPageInnerContent() {
             </div>
           </SheetHeader>
 
-          <div className="relative flex flex-col px-4">
-            <Input
-              type="text"
-              value={taskTitle}
-              onChange={(e) => {
-                const value = e.target.value;
+          <div className="relative flex flex-col h-[calc(100vh-4.3rem)] px-4">
+            <div className="overflow-y-auto h-full">
+              <Input
+                type="text"
+                value={taskTitle}
+                onChange={(e) => {
+                  const value = e.target.value;
 
-                setTaskTitle(value);
+                  setTaskTitle(value);
 
-                setTaskBoard((prev) => {
-                  if (!prev) return prev;
+                  setTaskBoard((prev) => {
+                    if (!prev) return prev;
 
-                  return {
-                    ...prev,
-                    states:
-                      prev.states?.map((col) => ({
-                        ...col,
-                        taskItem:
-                          col.taskItem?.map((task) =>
-                            task.uuid === selectedTaskUuid
-                              ? {
-                                  ...task,
-                                  title: value,
-                                }
-                              : task,
-                          ) ?? [],
-                      })) ?? [],
-                  };
-                });
-              }}
-              onBlur={() => {
-                if (!selectedTaskUuid) return;
+                    return {
+                      ...prev,
+                      states:
+                        prev.states?.map((col) => ({
+                          ...col,
+                          taskItem:
+                            col.taskItem?.map((task) =>
+                              task.uuid === selectedTaskUuid
+                                ? {
+                                    ...task,
+                                    title: value,
+                                  }
+                                : task,
+                            ) ?? [],
+                        })) ?? [],
+                    };
+                  });
+                }}
+                onBlur={() => {
+                  if (!selectedTaskUuid) return;
 
-                updateTaskItem(selectedTaskUuid, {
-                  title: taskTitle,
-                });
-              }}
-              placeholder="Enter note title..."
-              className="w-full !border-0 !ring-0 !shadow-none focus:!ring-0 focus:!shadow-none focus-visible:!ring-0 focus-visible:!shadow-none outline-none !text-3xl font-bold bg-transparent p-0 h-auto"
-              maxLength={64}
-            />
+                  updateTaskItem(selectedTaskUuid, {
+                    title: taskTitle,
+                  });
+                }}
+                placeholder="Enter note title..."
+                className="w-full !border-0 !ring-0 !shadow-none focus:!ring-0 focus:!shadow-none focus-visible:!ring-0 focus-visible:!shadow-none outline-none !text-3xl font-bold bg-transparent p-0 h-auto"
+                maxLength={64}
+              />
 
-            <span className="text-xs text-end text-muted-foreground">
-              {taskTitle.length}/64
-            </span>
+              <span className="text-xs text-end text-muted-foreground">
+                {taskTitle.length}/64
+              </span>
 
-            <div className="flex flex-col gap-2 w-full mt-2">
-              <Separator />
+              <div className="flex flex-col gap-2 w-full mt-2">
+                <Separator />
+              </div>
+
+              <Plate
+                editor={editor}
+                onChange={({ value }) => {
+                  handleTaskContentChange(value);
+                }}
+              >
+                <EditorContainer className="h-auto!">
+                  <Editor
+                    placeholder="Type your amazing content here..."
+                    className="!px-4 min-h-80 !py-4"
+                  />
+                </EditorContainer>
+              </Plate>
+
+              <div className="flex flex-col gap-2 w-full mt-2">
+                <Separator />
+              </div>
+
+              <div className="mt-4 py-4 flex flex-col gap-4">
+                <FieldSet className="grid grid-cols-3 gap-4">
+                  <FieldLabel htmlFor="title">State</FieldLabel>
+
+                  <Select
+                    value={selectedTask?.state_name ?? ""}
+                    onValueChange={(value) => {
+                      if (!selectedTaskUuid) return;
+
+                      changeTaskState(selectedTaskUuid, value ?? "");
+                    }}
+                  >
+                    <SelectTrigger className="w-full col-span-2">
+                      <SelectValue placeholder="Select state" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {taskBoard?.states?.map((boardState) => (
+                        <SelectItem
+                          key={boardState.uuid}
+                          value={boardState.uuid}
+                        >
+                          <div className="flex flex-row gap-2 items-center h-full">
+                            <div
+                              className="h-8 border-l-2"
+                              style={{
+                                borderLeftColor: boardState.color ?? "#6B7280",
+                              }}
+                            />
+
+                            <div className="flex flex-col">
+                              <span>{boardState.title}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {boardState.key}
+                              </span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <FieldLabel htmlFor="title">Priority</FieldLabel>
+                  <Select
+                    value={
+                      priorityData.find((p) => p.key === selectedTask?.priority)
+                        ?.name ??
+                      priorityData.find((p) => p.key === "none")?.name
+                    }
+                    onValueChange={async () => {}}
+                  >
+                    <SelectTrigger className="w-full col-span-2">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+
+                    <SelectContent>
+                      {priorityData?.map((priority) => (
+                        <SelectItem key={priority.key} value={priority.key}>
+                          <div className="flex flex-row gap-2 items-center h-full">
+                            <div className="flex items-center gap-2">
+                              {priority.icon}
+
+                              <span>{priority.name}</span>
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FieldSet>
+              </div>
             </div>
-
-            <Plate
-              editor={editor}
-              onChange={({ value }) => {
-                handleTaskContentChange(value);
-              }}
-            >
-              <EditorContainer>
-                <Editor
-                  placeholder="Type your amazing content here..."
-                  className="!px-4"
-                />
-              </EditorContainer>
-            </Plate>
           </div>
         </SheetContent>
       </Sheet>

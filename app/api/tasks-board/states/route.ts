@@ -37,7 +37,7 @@ export async function GET(req: Request) {
 
     const { data: state, error: stateError } = await supabase
       .from("tasks_board_states_data")
-      .select("color")
+      .select("color, title")
       .eq("uuid", stateUuid)
       .is("deleted_at", null)
       .single();
@@ -50,6 +50,7 @@ export async function GET(req: Request) {
       items?.map((item) => ({
         ...item,
         state_color: state?.color ?? "dark-gray",
+        state_name: state?.title ?? "Backlog",
       })) ?? [];
 
     return NextResponse.json({

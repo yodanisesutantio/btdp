@@ -107,6 +107,7 @@ export interface TasksItem {
   labels?: string;
   state_uuid?: string;
   state_color?: string;
+  state_name?: string;
   archived?: boolean;
   createdBy?: string;
   createdAt?: string;
