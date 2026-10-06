@@ -63,8 +63,25 @@ function TasksBoardPageInnerContent() {
   const searchParams = useSearchParams();
   const uuid = searchParams.get("id");
 
-  const [loading, setLoading] = useState(false);
   const [stateLoading, setStateLoading] = useState<Record<string, boolean>>({});
+  const [stateLoadingMore, setStateLoadingMore] = useState<
+    Record<string, boolean>
+  >({});
+  const [stateHasMore, setStateHasMore] = useState<Record<string, boolean>>({});
+  const [stateCursors, setStateCursors] = useState<
+    Record<
+      string,
+      {
+        created_at: string;
+        uuid: string;
+      } | null
+    >
+  >({});
+  const [stateTaskCounts, setStateTaskCounts] = useState<
+    Record<string, number>
+  >({});
+  const stateScrollRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const loadMoreRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { selectedWorkspace } = useWorkspace();
   const [taskBoard, setTaskBoard] = useState<TasksBoardData | null>(
     emptyTasksBoard,
@@ -81,8 +98,6 @@ function TasksBoardPageInnerContent() {
   });
 
   const fetchTaskBoard = async () => {
-    setLoading(true);
-
     try {
       const res = await fetch(`/api/tasks-board?id=${uuid}`);
       const json = await res.json();
@@ -100,8 +115,6 @@ function TasksBoardPageInnerContent() {
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -112,18 +125,46 @@ function TasksBoardPageInnerContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
 
-  const fetchTaskItems = async (stateUuid: string) => {
+  const fetchTaskItems = async (stateUuid: string, loadMore = false) => {
     if (!taskBoard?.uuid) return;
 
-    setStateLoading((prev) => ({
-      ...prev,
-      [stateUuid]: true,
-    }));
+    if (loadMore) {
+      if (stateLoadingMore[stateUuid] || stateHasMore[stateUuid] === false) {
+        return;
+      }
+
+      setStateLoadingMore((prev) => ({
+        ...prev,
+        [stateUuid]: true,
+      }));
+    } else {
+      setStateLoading((prev) => ({
+        ...prev,
+        [stateUuid]: true,
+      }));
+    }
 
     try {
-      const res = await fetch(
-        `/api/tasks-board/states?uuid=${stateUuid}&board_uuid=${taskBoard.uuid}`,
-      );
+      const params = new URLSearchParams({
+        uuid: stateUuid,
+        board_uuid: taskBoard.uuid,
+        limit: "10",
+      });
+
+      if (loadMore) {
+        const cursor = stateCursors[stateUuid];
+
+        if (cursor) {
+          params.set("cursor_created_at", cursor.created_at);
+          params.set("cursor_uuid", cursor.uuid);
+        }
+      }
+
+      const res = await fetch(`/api/tasks-board/states?${params.toString()}`);
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch task items");
+      }
 
       const json = await res.json();
 
@@ -137,19 +178,43 @@ function TasksBoardPageInnerContent() {
               state.uuid === stateUuid
                 ? {
                     ...state,
-                    taskItem: json?.data ?? [],
+                    taskItem: loadMore
+                      ? [...(state.taskItem ?? []), ...(json.data ?? [])]
+                      : (json.data ?? []),
                   }
                 : state,
             ) ?? [],
         };
       });
+
+      setStateHasMore((prev) => ({
+        ...prev,
+        [stateUuid]: json.hasMore ?? false,
+      }));
+
+      setStateTaskCounts((prev) => ({
+        ...prev,
+        [stateUuid]: json.total ?? 0,
+      }));
+
+      setStateCursors((prev) => ({
+        ...prev,
+        [stateUuid]: json.nextCursor ?? null,
+      }));
     } catch (err) {
       console.error(err);
     } finally {
-      setStateLoading((prev) => ({
-        ...prev,
-        [stateUuid]: false,
-      }));
+      if (loadMore) {
+        setStateLoadingMore((prev) => ({
+          ...prev,
+          [stateUuid]: false,
+        }));
+      } else {
+        setStateLoading((prev) => ({
+          ...prev,
+          [stateUuid]: false,
+        }));
+      }
     }
   };
 
@@ -164,12 +229,8 @@ function TasksBoardPageInnerContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskBoard?.states?.length]);
 
-  const [creating, setCreating] = useState(false);
-
   const createTaskItem = async (stateUuid: string) => {
     if (!workspaceUuid || !uuid) return;
-
-    setCreating(true);
 
     try {
       const res = await fetch("/api/tasks-board/items", {
@@ -220,8 +281,6 @@ function TasksBoardPageInnerContent() {
       setOpen(true);
     } catch (err) {
       console.error(err);
-    } finally {
-      setCreating(false);
     }
   };
 
@@ -540,6 +599,52 @@ function TasksBoardPageInnerContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTask?.uuid]);
 
+  useEffect(() => {
+    const observers: IntersectionObserver[] = [];
+
+    taskBoard?.states?.forEach((state) => {
+      const stateUuid = state.uuid;
+
+      if (!stateUuid || state.collapsed) return;
+
+      const sentinel = loadMoreRefs.current[stateUuid];
+      const scrollContainer = stateScrollRefs.current[stateUuid];
+
+      if (!sentinel || !scrollContainer) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const entry = entries[0];
+
+          if (!entry.isIntersecting) return;
+
+          if (
+            stateLoading[stateUuid] ||
+            stateLoadingMore[stateUuid] ||
+            stateHasMore[stateUuid] !== true
+          ) {
+            return;
+          }
+
+          fetchTaskItems(stateUuid, true);
+        },
+        {
+          root: scrollContainer,
+          rootMargin: "200px 0px",
+          threshold: 0,
+        },
+      );
+
+      observer.observe(sentinel);
+      observers.push(observer);
+    });
+
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [taskBoard?.states, stateLoadingMore, stateHasMore]);
+
   const handleDrop = async (targetColKey: string) => {
     if (!draggedKey || !taskBoard?.states) return;
 
@@ -664,7 +769,7 @@ function TasksBoardPageInnerContent() {
                       </div>
                     </div>
                     <div className="flex-shrink-0 text-xs text-muted-foreground font-medium">
-                      {state.taskItem?.length ?? 0}
+                      {stateTaskCounts[state.uuid ?? ""] ?? 0}
                     </div>
                   </div>
                   <Button
@@ -700,14 +805,17 @@ function TasksBoardPageInnerContent() {
               </div>
               {!state.collapsed && (
                 <div
-                  className={`h-full min-h-[120px] rounded-lg transition-all duration-150 ${
+                  className={`relative rounded-lg transition-all duration-150 ${
                     draggedKey && dragOverStateUuid === state.uuid
                       ? "bg-primary/5 ring-2 ring-dashed ring-primary/40"
                       : ""
                   }`}
                 >
                   <div
-                    className={`relative h-full min-h-[120px] vertical-scrollbar scrollbar-md transition-all duration-150 ${
+                    ref={(element) => {
+                      stateScrollRefs.current[state.uuid ?? ""] = element;
+                    }}
+                    className={`relative max-h-[calc(100vh-9rem)] overflow-y-auto vertical-scrollbar scrollbar-md transition-all duration-150 ${
                       draggedKey && dragOverStateUuid === state.uuid
                         ? "px-1"
                         : ""
@@ -989,21 +1097,33 @@ function TasksBoardPageInnerContent() {
                         </div>
                       ))
                     )}
-                    <div className="w-full py-0.5 sticky bottom-0">
-                      <div className="">
-                        <Button
-                          variant="ghost"
-                          className="flex w-full cursor-pointer items-center justify-start gap-2 py-1.5 hover:bg-gray-300/30"
-                          onClick={() => {
-                            createTaskItem(state.uuid ?? "");
-                          }}
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          <span className="text-sm font-medium">
-                            New Work item
-                          </span>
-                        </Button>
+                    <div
+                      ref={(element) => {
+                        loadMoreRefs.current[state.uuid ?? ""] = element;
+                      }}
+                      className="h-1"
+                    />
+
+                    {stateLoadingMore[state.uuid ?? ""] && (
+                      <div className="space-y-2 pb-2">
+                        <div className="h-20 w-full animate-pulse rounded bg-gray-300/60" />
                       </div>
+                    )}
+                  </div>
+                  <div className="w-full py-0.5 sticky bottom-0">
+                    <div className="">
+                      <Button
+                        variant="ghost"
+                        className="flex w-full cursor-pointer items-center justify-start gap-2 py-1.5 hover:bg-gray-300/30"
+                        onClick={() => {
+                          createTaskItem(state.uuid ?? "");
+                        }}
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        <span className="text-sm font-medium">
+                          New Work item
+                        </span>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1198,8 +1318,12 @@ function TasksBoardPageInnerContent() {
                             <div className="flex flex-col">
                               <span>{boardState.title}</span>
                               <span className="text-xs text-muted-foreground">
-                                {boardState.taskItem?.length ?? 0}{" "}
-                                {boardState.taskItem?.length === 1
+                                {stateTaskCounts[
+                                  selectedTask?.state_uuid ?? ""
+                                ] ?? 0}{" "}
+                                {stateTaskCounts[
+                                  selectedTask?.state_uuid ?? ""
+                                ] === 1
                                   ? "task"
                                   : "tasks"}
                               </span>
