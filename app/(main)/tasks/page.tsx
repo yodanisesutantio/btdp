@@ -111,6 +111,12 @@ export interface TasksItem {
   archived?: boolean;
   createdBy?: string;
   createdAt?: string;
+  assignees?: {
+    uuid: string;
+    username?: string | null;
+    first_name?: string | null;
+    last_name?: string | null;
+  }[];
 }
 
 export const dummyTasksItem: TasksItem = {

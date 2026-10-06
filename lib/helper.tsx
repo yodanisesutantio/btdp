@@ -46,6 +46,33 @@ export const getConfirmStatus = (password: string, confirm: string) => {
   return password === confirm ? "match" : "mismatch";
 };
 
+export const getContributorName = (contributor: {
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+}) => {
+  const name = [contributor.first_name, contributor.last_name]
+    .filter(Boolean)
+    .join(" ");
+
+  return name || contributor.username || "Unknown user";
+};
+
+export const getContributorInitials = (contributor: {
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+}) => {
+  const name = getContributorName(contributor);
+
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join("");
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const normalizeContent = (content: any) => {
   if (!content) {

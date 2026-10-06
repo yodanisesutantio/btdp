@@ -1,25 +1,27 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
-import { generateBoardPrefix } from "@/lib/helper";
 
 async function generateTaskKey(boardUuid: string) {
   const { data: board, error: boardError } = await supabase
     .from("tasks_board_data")
-    .select("title")
+    .select("task_prefix")
     .eq("uuid", boardUuid)
+    .is("deleted_at", null)
     .single();
 
   if (boardError) {
     throw new Error(boardError.message);
   }
 
-  const prefix = generateBoardPrefix(board.title ?? "Task");
+  if (!board.task_prefix) {
+    throw new Error("Board task prefix is not configured");
+  }
 
   const { data: items, error: itemsError } = await supabase
     .from("tasks_board_items_data")
     .select("key")
     .eq("board_uuid", boardUuid)
-    .like("key", `${prefix}-%`)
+    .like("key", `${board.task_prefix}-%`)
     .is("deleted_at", null);
 
   if (itemsError) {
@@ -30,7 +32,9 @@ async function generateTaskKey(boardUuid: string) {
 
   for (const item of items ?? []) {
     const match = item.key?.match(
-      new RegExp(`^${prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-(\\d+)$`),
+      new RegExp(
+        `^${board.task_prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-(\\d+)$`,
+      ),
     );
 
     if (!match) continue;
@@ -42,7 +46,200 @@ async function generateTaskKey(boardUuid: string) {
     }
   }
 
-  return `${prefix}-${String(highestNumber + 1).padStart(3, "0")}`;
+  return `${board.task_prefix}-${String(highestNumber + 1).padStart(3, "0")}`;
+}
+
+async function getTaskAssignees(taskUuids: string[]) {
+  if (taskUuids.length === 0) {
+    return new Map();
+  }
+
+  const { data, error } = await supabase
+    .from("tasks_board_items_assignee_data")
+    .select(
+      `
+        task_uuid,
+        user_uuid,
+        users (
+          uuid,
+          username,
+          first_name,
+          last_name
+        )
+      `,
+    )
+    .in("task_uuid", taskUuids)
+    .is("deleted_at", null);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const assigneesByTask = new Map<
+    string,
+    Array<{
+      uuid: string;
+      username?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+    }>
+  >();
+
+  for (const row of data ?? []) {
+    if (!row.users) continue;
+
+    const user = Array.isArray(row.users) ? row.users[0] : row.users;
+
+    if (!user) continue;
+
+    const existing = assigneesByTask.get(row.task_uuid) ?? [];
+
+    existing.push({
+      uuid: user.uuid,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
+    });
+
+    assigneesByTask.set(row.task_uuid, existing);
+  }
+
+  return assigneesByTask;
+}
+
+async function syncTaskAssignees(
+  taskUuid: string,
+  workspaceUuid: string,
+  boardUuid: string,
+  assigneeUuids: string[],
+) {
+  const uniqueAssigneeUuids = [
+    ...new Set(
+      assigneeUuids.filter(
+        (userUuid): userUuid is string =>
+          typeof userUuid === "string" && userUuid.trim().length > 0,
+      ),
+    ),
+  ];
+
+  const now = new Date().toISOString();
+
+  const { data: existingRows, error: existingError } = await supabase
+    .from("tasks_board_items_assignee_data")
+    .select("id, user_uuid, deleted_at")
+    .eq("task_uuid", taskUuid);
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  const existingByUser = new Map(
+    (existingRows ?? []).map((row) => [row.user_uuid, row]),
+  );
+
+  for (const userUuid of uniqueAssigneeUuids) {
+    const existing = existingByUser.get(userUuid);
+
+    if (existing) {
+      if (existing.deleted_at !== null) {
+        const { error } = await supabase
+          .from("tasks_board_items_assignee_data")
+          .update({
+            deleted_at: null,
+            updated_at: now,
+          })
+          .eq("id", existing.id);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+      }
+
+      continue;
+    }
+
+    const { error } = await supabase
+      .from("tasks_board_items_assignee_data")
+      .insert({
+        workspace_uuid: workspaceUuid,
+        board_uuid: boardUuid,
+        task_uuid: taskUuid,
+        user_uuid: userUuid,
+        created_at: now,
+        updated_at: now,
+        deleted_at: null,
+      });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
+  const selectedUsers = new Set(uniqueAssigneeUuids);
+
+  const activeRows = (existingRows ?? []).filter(
+    (row) => row.deleted_at === null && !selectedUsers.has(row.user_uuid),
+  );
+
+  for (const row of activeRows) {
+    const { error } = await supabase
+      .from("tasks_board_items_assignee_data")
+      .update({
+        deleted_at: now,
+        updated_at: now,
+      })
+      .eq("id", row.id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+}
+
+async function getTaskState(stateUuid: string | null) {
+  if (!stateUuid) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("tasks_board_states_data")
+    .select("uuid, color, title")
+    .eq("uuid", stateUuid)
+    .is("deleted_at", null)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseTaskData(item: any, assignees: any[] = []) {
+  return {
+    ...item,
+    content: item.content
+      ? (() => {
+          try {
+            return JSON.parse(item.content);
+          } catch {
+            return item.content;
+          }
+        })()
+      : [],
+    labels:
+      typeof item.labels === "string"
+        ? (() => {
+            try {
+              return JSON.parse(item.labels);
+            } catch {
+              return item.labels;
+            }
+          })()
+        : item.labels,
+    assignees,
+  };
 }
 
 export async function GET(req: Request) {
@@ -82,30 +279,17 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    const parsedData = (data ?? []).map((item) => ({
-      ...item,
-      content: item.content
-        ? (() => {
-            try {
-              return JSON.parse(item.content);
-            } catch {
-              return item.content;
-            }
-          })()
-        : [],
-      labels:
-        typeof item.labels === "string"
-          ? (() => {
-              try {
-                return JSON.parse(item.labels);
-              } catch {
-                return item.labels;
-              }
-            })()
-          : item.labels,
-    }));
+    const taskUuids = (data ?? []).map((item) => item.uuid);
 
-    return NextResponse.json({ data: parsedData });
+    const assigneesByTask = await getTaskAssignees(taskUuids);
+
+    const parsedData = (data ?? []).map((item) =>
+      parseTaskData(item, assigneesByTask.get(item.uuid) ?? []),
+    );
+
+    return NextResponse.json({
+      data: parsedData,
+    });
   } catch (err) {
     return NextResponse.json(
       {
@@ -131,6 +315,7 @@ export async function POST(req: Request) {
       end_date,
       labels,
       created_by,
+      assignee_uuids,
     } = body;
 
     if (!workspace_uuid) {
@@ -150,6 +335,13 @@ export async function POST(req: Request) {
     if (!state_uuid) {
       return NextResponse.json(
         { error: "state_uuid is required" },
+        { status: 400 },
+      );
+    }
+
+    if (assignee_uuids !== undefined && !Array.isArray(assignee_uuids)) {
+      return NextResponse.json(
+        { error: "assignee_uuids must be an array" },
         { status: 400 },
       );
     }
@@ -186,31 +378,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    let state = null;
-
-    if (data.state_uuid) {
-      const { data: stateData, error: stateError } = await supabase
-        .from("tasks_board_states_data")
-        .select("uuid, color, title")
-        .eq("uuid", data.state_uuid)
-        .is("deleted_at", null)
-        .single();
-
-      if (stateError) {
-        return NextResponse.json(
-          { error: stateError.message },
-          { status: 400 },
-        );
-      }
-
-      state = stateData;
+    if (Array.isArray(assignee_uuids)) {
+      await syncTaskAssignees(
+        data.uuid,
+        workspace_uuid,
+        board_uuid,
+        assignee_uuids,
+      );
     }
+
+    const state = await getTaskState(data.state_uuid);
+
+    const assigneesByTask = await getTaskAssignees([data.uuid]);
 
     return NextResponse.json(
       {
         success: true,
         data: {
-          ...data,
+          ...parseTaskData(data, assigneesByTask.get(data.uuid) ?? []),
           state_name: state?.title ?? null,
           state_color: state?.color ?? null,
         },
@@ -235,6 +420,16 @@ export async function PATCH(req: Request) {
 
     if (!uuid) {
       return NextResponse.json({ error: "UUID is required" }, { status: 400 });
+    }
+
+    if (
+      body.assignee_uuids !== undefined &&
+      !Array.isArray(body.assignee_uuids)
+    ) {
+      return NextResponse.json(
+        { error: "assignee_uuids must be an array" },
+        { status: 400 },
+      );
     }
 
     const updateData: Record<string, unknown> = {
@@ -290,30 +485,23 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    let state = null;
-
-    if (data.state_uuid) {
-      const { data: stateData, error: stateError } = await supabase
-        .from("tasks_board_states_data")
-        .select("uuid, color, title")
-        .eq("uuid", data.state_uuid)
-        .is("deleted_at", null)
-        .single();
-
-      if (stateError) {
-        return NextResponse.json(
-          { error: stateError.message },
-          { status: 400 },
-        );
-      }
-
-      state = stateData;
+    if (body.assignee_uuids !== undefined) {
+      await syncTaskAssignees(
+        data.uuid,
+        data.workspace_uuid,
+        data.board_uuid,
+        body.assignee_uuids,
+      );
     }
+
+    const state = await getTaskState(data.state_uuid);
+
+    const assigneesByTask = await getTaskAssignees([data.uuid]);
 
     return NextResponse.json({
       success: true,
       data: {
-        ...data,
+        ...parseTaskData(data, assigneesByTask.get(data.uuid) ?? []),
         state_name: state?.title ?? null,
         state_color: state?.color ?? null,
       },
@@ -336,11 +524,13 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "UUID is required" }, { status: 400 });
     }
 
+    const now = new Date().toISOString();
+
     const { error } = await supabase
       .from("tasks_board_items_data")
       .update({
-        deleted_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        deleted_at: now,
+        updated_at: now,
       })
       .eq("uuid", uuid)
       .is("deleted_at", null);

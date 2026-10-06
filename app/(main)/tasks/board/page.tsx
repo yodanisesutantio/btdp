@@ -18,6 +18,7 @@ import {
   CalendarCheck2,
   CalendarClock,
   Check,
+  ChevronDown,
   Ellipsis,
   ExternalLink,
   Kanban,
@@ -50,6 +51,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getContributorInitials, getContributorName } from "@/lib/helper";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 export default function TasksBoardPage() {
   return (
@@ -92,6 +107,42 @@ function TasksBoardPageInnerContent() {
   const userObj = user ? JSON.parse(user) : null;
 
   const workspaceUuid = selectedWorkspace?.uuid;
+
+  const [contributors, setContributors] = useState<
+    {
+      uuid: string;
+      username?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      role?: string | null;
+    }[]
+  >([]);
+
+  useEffect(() => {
+    if (!workspaceUuid) return;
+
+    const fetchContributors = async () => {
+      try {
+        const res = await fetch(
+          `/api/workspaces/contributors?q=${workspaceUuid}`,
+        );
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(
+            json?.error ?? "Failed to fetch workspace contributors",
+          );
+        }
+
+        setContributors(json.data ?? []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchContributors();
+  }, [workspaceUuid]);
 
   const editor = usePlateEditor({
     plugins: EditorKit,
@@ -284,7 +335,12 @@ function TasksBoardPageInnerContent() {
     }
   };
 
-  const updateTaskItem = async (taskUuid: string, data: Partial<TasksItem>) => {
+  const updateTaskItem = async (
+    taskUuid: string,
+    data: Partial<TasksItem> & {
+      assignee_uuids?: string[];
+    },
+  ) => {
     try {
       const res = await fetch("/api/tasks-board/items", {
         method: "PATCH",
@@ -1333,6 +1389,130 @@ function TasksBoardPageInnerContent() {
                       ))}
                     </SelectContent>
                   </Select>
+
+                  <FieldLabel htmlFor="assignees">Assignees</FieldLabel>
+
+                  <div className="col-span-2">
+                    <Popover>
+                      <PopoverTrigger className={`w-full`}>
+                        <button
+                          type="button"
+                          className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-background px-3 text-sm hover:bg-transparent"
+                        >
+                          <div className="flex min-w-0 items-center">
+                            {selectedTask?.assignees?.length ? (
+                              <div className="flex items-center -space-x-1.5">
+                                {selectedTask.assignees
+                                  .slice(0, 3)
+                                  .map((assignee) => {
+                                    const contributor = contributors.find(
+                                      (item) => item.uuid === assignee.uuid,
+                                    );
+
+                                    if (!contributor) return null;
+
+                                    return (
+                                      <div
+                                        key={assignee.uuid}
+                                        className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium"
+                                        title={getContributorName(contributor)}
+                                      >
+                                        {getContributorInitials(contributor)}
+                                      </div>
+                                    );
+                                  })}
+
+                                {selectedTask.assignees.length > 3 && (
+                                  <div
+                                    className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-background bg-muted text-[9px] font-medium"
+                                    title={`${selectedTask.assignees.length - 3} more assignees`}
+                                  >
+                                    +{selectedTask.assignees.length - 3}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                Select assignees
+                              </span>
+                            )}
+                          </div>
+
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </button>
+                      </PopoverTrigger>
+
+                      <PopoverContent align="start" className="w-[280px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Search people..." />
+
+                          <CommandList>
+                            <CommandEmpty>No contributors found.</CommandEmpty>
+
+                            <CommandGroup>
+                              {contributors.map((contributor) => {
+                                const isSelected =
+                                  selectedTask?.assignees?.some(
+                                    (assignee) =>
+                                      assignee.uuid === contributor.uuid,
+                                  ) ?? false;
+
+                                const name = getContributorName(contributor);
+
+                                return (
+                                  <CommandItem
+                                    key={contributor.uuid}
+                                    value={`${name} ${contributor.username ?? ""}`}
+                                    onSelect={async () => {
+                                      if (!selectedTaskUuid) return;
+
+                                      const currentAssigneeUuids =
+                                        selectedTask?.assignees?.map(
+                                          (assignee) => assignee.uuid,
+                                        ) ?? [];
+
+                                      const nextAssigneeUuids = isSelected
+                                        ? currentAssigneeUuids.filter(
+                                            (uuid) => uuid !== contributor.uuid,
+                                          )
+                                        : [
+                                            ...currentAssigneeUuids,
+                                            contributor.uuid,
+                                          ];
+
+                                      await updateTaskItem(selectedTaskUuid, {
+                                        assignee_uuids: nextAssigneeUuids,
+                                      });
+                                    }}
+                                  >
+                                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                                      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-medium">
+                                        {getContributorInitials(contributor)}
+                                      </div>
+
+                                      <div className="flex min-w-0 flex-1 flex-col">
+                                        <span className="truncate">{name}</span>
+
+                                        {contributor.role && (
+                                          <span className="truncate text-xs text-muted-foreground">
+                                            {contributor.role}
+                                          </span>
+                                        )}
+                                      </div>
+
+                                      {isSelected && (
+                                        <Check className="h-4 w-4 shrink-0" />
+                                      )}
+                                    </div>
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
                   <FieldLabel htmlFor="priority">Priority</FieldLabel>
 
