@@ -186,13 +186,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    let state = null;
+
+    if (data.state_uuid) {
+      const { data: stateData, error: stateError } = await supabase
+        .from("tasks_board_states_data")
+        .select("uuid, color, title")
+        .eq("uuid", data.state_uuid)
+        .is("deleted_at", null)
+        .single();
+
+      if (stateError) {
+        return NextResponse.json(
+          { error: stateError.message },
+          { status: 400 },
+        );
+      }
+
+      state = stateData;
+    }
+
     return NextResponse.json(
       {
         success: true,
         data: {
           ...data,
-          content: content ?? [],
-          labels,
+          state_name: state?.title ?? null,
+          state_color: state?.color ?? null,
         },
       },
       { status: 201 },

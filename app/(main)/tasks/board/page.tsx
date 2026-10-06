@@ -759,7 +759,7 @@ function TasksBoardPageInnerContent() {
                             <div className="space-y-2 px-3 py-2">
                               <div className="relative">
                                 <div className="flex items-center space-x-2">
-                                  <span className="font-medium line-clamp-1 text-xs">
+                                  <span className="font-medium line-clamp-1 text-xs text-muted-foreground">
                                     {item.key ?? ""}
                                   </span>
                                 </div>
@@ -1172,7 +1172,7 @@ function TasksBoardPageInnerContent() {
 
                           <div className="flex min-w-0 flex-col text-left">
                             <span className="truncate">
-                              {selectedTask?.title}
+                              {selectedTask?.state_name}
                             </span>
                           </div>
                         </div>
@@ -1264,7 +1264,13 @@ function TasksBoardPageInnerContent() {
                         changeTaskDate(selectedTaskUuid, "start_date", date);
                       }}
                       className="w-full justify-start pl-2.5 pr-2 hover:bg-transparent!"
+                      valueClassName="text-sm!"
                       renderChevronAtEnd
+                      placeholder={
+                        <span className="text-muted-foreground truncate">
+                          -- Click to choose Start Date --
+                        </span>
+                      }
                     />
                   </div>
 
@@ -1280,7 +1286,13 @@ function TasksBoardPageInnerContent() {
                         changeTaskDate(selectedTaskUuid, "end_date", date);
                       }}
                       className="w-full justify-start pl-2.5 pr-2 hover:bg-transparent!"
+                      valueClassName="text-sm!"
                       renderChevronAtEnd
+                      placeholder={
+                        <span className="text-muted-foreground truncate">
+                          -- Click to choose End Date --
+                        </span>
+                      }
                     />
                   </div>
                 </FieldSet>

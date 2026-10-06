@@ -23,7 +23,9 @@ interface TaskDateButtonProps {
   value?: string | null;
   onSelect: (isoTimestamp: string) => void;
   className?: string;
+  valueClassName?: string;
   renderChevronAtEnd?: boolean;
+  placeholder?: React.ReactNode;
 }
 
 export function TaskDateButton({
@@ -31,7 +33,9 @@ export function TaskDateButton({
   value,
   onSelect,
   className,
+  valueClassName,
   renderChevronAtEnd = false,
+  placeholder = false,
 }: TaskDateButtonProps) {
   const initialDate = toDate(value);
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
@@ -84,12 +88,16 @@ export function TaskDateButton({
             className={`${className ?? "clickable block h-5 max-w-40 cursor-pointer truncate rounded bg-transparent outline-none hover:border-foreground hover:bg-muted"}`}
           >
             <div className="w-full h-full flex items-center justify-between">
-              <div className="flex h-full items-center gap-1.5 rounded text-xs">
+              <div
+                className={`flex h-full items-center gap-1.5 rounded text-xs ${valueClassName}`}
+              >
                 {icon}
-                {selectedDate && (
+                {selectedDate ? (
                   <span className="truncate">
                     {formatDisplay(selectedDate)}
                   </span>
+                ) : (
+                  placeholder
                 )}
               </div>
               {!!renderChevronAtEnd && (
