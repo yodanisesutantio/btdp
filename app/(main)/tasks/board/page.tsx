@@ -376,6 +376,66 @@ function TasksBoardPageInnerContent() {
     });
   };
 
+  const changeTaskPriority = async (taskUuid: string, priority: string) => {
+    const result = await updateTaskItem(taskUuid, {
+      priority,
+    });
+
+    if (!result) return;
+
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        states:
+          prev.states?.map((state) => ({
+            ...state,
+            taskItem: (state.taskItem ?? []).map((task) =>
+              task.uuid === taskUuid
+                ? {
+                    ...task,
+                    priority,
+                  }
+                : task,
+            ),
+          })) ?? [],
+      };
+    });
+  };
+
+  const changeTaskDate = async (
+    taskUuid: string,
+    field: "start_date" | "end_date",
+    date: string,
+  ) => {
+    const result = await updateTaskItem(taskUuid, {
+      [field]: date,
+    });
+
+    if (!result) return;
+
+    setTaskBoard((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        states:
+          prev.states?.map((state) => ({
+            ...state,
+            taskItem: (state.taskItem ?? []).map((task) =>
+              task.uuid === taskUuid
+                ? {
+                    ...task,
+                    [field]: date,
+                  }
+                : task,
+            ),
+          })) ?? [],
+      };
+    });
+  };
+
   const archiveTaskItem = async () => {
     if (!selectedTask?.uuid) return;
 
@@ -470,6 +530,10 @@ function TasksBoardPageInnerContent() {
         .find((task) => task.uuid === selectedTaskUuid) ?? null
     );
   }, [selectedTaskUuid, taskBoard?.states]);
+
+  const selectedPriority =
+    priorityData.find((p) => p.key === selectedTask?.priority) ??
+    priorityData.find((p) => p.key === "none");
 
   useEffect(() => {
     setTaskTitle(selectedTask?.title ?? "");
@@ -1085,7 +1149,7 @@ function TasksBoardPageInnerContent() {
 
               <div className="mt-4 py-4 flex flex-col gap-4">
                 <FieldSet className="grid grid-cols-3 gap-4">
-                  <FieldLabel htmlFor="title">State</FieldLabel>
+                  <FieldLabel htmlFor="state">State</FieldLabel>
 
                   <Select
                     value={selectedTask?.state_name ?? ""}
@@ -1095,8 +1159,26 @@ function TasksBoardPageInnerContent() {
                       changeTaskState(selectedTaskUuid, value ?? "");
                     }}
                   >
-                    <SelectTrigger className="w-full col-span-2">
-                      <SelectValue placeholder="Select state" />
+                    <SelectTrigger id="state" className="col-span-2 w-full">
+                      {selectedTask?.state_name ? (
+                        <div className="flex min-w-0 items-center gap-2">
+                          <div
+                            className="h-5 border-l-2"
+                            style={{
+                              borderLeftColor:
+                                selectedTask?.state_color ?? "#6B7280",
+                            }}
+                          />
+
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate">
+                              {selectedTask?.title}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Select state" />
+                      )}
                     </SelectTrigger>
 
                     <SelectContent>
@@ -1105,7 +1187,7 @@ function TasksBoardPageInnerContent() {
                           key={boardState.uuid}
                           value={boardState.uuid}
                         >
-                          <div className="flex flex-row gap-2 items-center h-full">
+                          <div className="flex h-full flex-row items-center gap-2">
                             <div
                               className="h-8 border-l-2"
                               style={{
@@ -1116,7 +1198,10 @@ function TasksBoardPageInnerContent() {
                             <div className="flex flex-col">
                               <span>{boardState.title}</span>
                               <span className="text-xs text-muted-foreground">
-                                {boardState.key}
+                                {boardState.taskItem?.length ?? 0}{" "}
+                                {boardState.taskItem?.length === 1
+                                  ? "task"
+                                  : "tasks"}
                               </span>
                             </div>
                           </div>
@@ -1125,33 +1210,79 @@ function TasksBoardPageInnerContent() {
                     </SelectContent>
                   </Select>
 
-                  <FieldLabel htmlFor="title">Priority</FieldLabel>
+                  <FieldLabel htmlFor="priority">Priority</FieldLabel>
+
                   <Select
                     value={
                       priorityData.find((p) => p.key === selectedTask?.priority)
                         ?.name ??
                       priorityData.find((p) => p.key === "none")?.name
                     }
-                    onValueChange={async () => {}}
+                    onValueChange={(value) => {
+                      if (!selectedTaskUuid) return;
+
+                      changeTaskPriority(selectedTaskUuid, value ?? "");
+                    }}
                   >
-                    <SelectTrigger className="w-full col-span-2">
-                      <SelectValue placeholder="Select role" />
+                    <SelectTrigger id="priority" className="col-span-2 w-full">
+                      {selectedTask?.priority ? (
+                        <div className="flex min-w-0 items-center gap-2">
+                          {selectedPriority?.icon}
+
+                          <div className="flex min-w-0 flex-col text-left">
+                            <span className="truncate">
+                              {selectedPriority?.name}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <SelectValue placeholder="Select priority" />
+                      )}
                     </SelectTrigger>
 
                     <SelectContent>
                       {priorityData?.map((priority) => (
                         <SelectItem key={priority.key} value={priority.key}>
-                          <div className="flex flex-row gap-2 items-center h-full">
-                            <div className="flex items-center gap-2">
-                              {priority.icon}
-
-                              <span>{priority.name}</span>
-                            </div>
+                          <div className="flex flex-row items-center gap-2">
+                            {priority.icon}
+                            <span>{priority.name}</span>
                           </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+
+                  <FieldLabel htmlFor="start-date">Start date</FieldLabel>
+
+                  <div className="col-span-2">
+                    <TaskDateButton
+                      icon={<CalendarClock className="size-4" />}
+                      value={selectedTask?.start_date}
+                      onSelect={(date) => {
+                        if (!selectedTaskUuid) return;
+
+                        changeTaskDate(selectedTaskUuid, "start_date", date);
+                      }}
+                      className="w-full justify-start pl-2.5 pr-2 hover:bg-transparent!"
+                      renderChevronAtEnd
+                    />
+                  </div>
+
+                  <FieldLabel htmlFor="end-date">End date</FieldLabel>
+
+                  <div className="col-span-2">
+                    <TaskDateButton
+                      icon={<CalendarCheck2 className="size-4" />}
+                      value={selectedTask?.end_date}
+                      onSelect={(date) => {
+                        if (!selectedTaskUuid) return;
+
+                        changeTaskDate(selectedTaskUuid, "end_date", date);
+                      }}
+                      className="w-full justify-start pl-2.5 pr-2 hover:bg-transparent!"
+                      renderChevronAtEnd
+                    />
+                  </div>
                 </FieldSet>
               </div>
             </div>

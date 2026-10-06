@@ -16,14 +16,23 @@ import {
   toDate,
   toTimeInputValue,
 } from "@/lib/helper";
+import { ChevronDown } from "lucide-react";
 
 interface TaskDateButtonProps {
   icon: React.ReactNode;
   value?: string | null;
   onSelect: (isoTimestamp: string) => void;
+  className?: string;
+  renderChevronAtEnd?: boolean;
 }
 
-export function TaskDateButton({ icon, value, onSelect }: TaskDateButtonProps) {
+export function TaskDateButton({
+  icon,
+  value,
+  onSelect,
+  className,
+  renderChevronAtEnd = false,
+}: TaskDateButtonProps) {
   const initialDate = toDate(value);
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
     initialDate,
@@ -67,14 +76,14 @@ export function TaskDateButton({ icon, value, onSelect }: TaskDateButtonProps) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <span onClick={stopCardNav} className="inline-block h-full">
-        <PopoverTrigger>
+      <span onClick={stopCardNav} className="inline-block w-full h-full">
+        <PopoverTrigger className={`w-full`}>
           <Button
             variant="outline"
             type="button"
-            className="clickable block h-5 max-w-40 cursor-pointer truncate rounded bg-transparent outline-none hover:border-foreground hover:bg-muted"
+            className={`${className ?? "clickable block h-5 max-w-40 cursor-pointer truncate rounded bg-transparent outline-none hover:border-foreground hover:bg-muted"}`}
           >
-            <div className="h-full flex items-center">
+            <div className="w-full h-full flex items-center justify-between">
               <div className="flex h-full items-center gap-1.5 rounded text-xs">
                 {icon}
                 {selectedDate && (
@@ -83,6 +92,11 @@ export function TaskDateButton({ icon, value, onSelect }: TaskDateButtonProps) {
                   </span>
                 )}
               </div>
+              {!!renderChevronAtEnd && (
+                <ChevronDown
+                  className={`size-4 text-muted-foreground ${open ? "rotate-180" : ""}`}
+                />
+              )}
             </div>
           </Button>
         </PopoverTrigger>
